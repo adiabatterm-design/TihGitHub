@@ -1,8 +1,8 @@
 #ifndef KompWorkTime_h
 #define KompWorkTime_h
 
-#include <Arduino.h>   // Основни типове и функции за Arduino
-#include <EEPROM.h>    // За работа с EEPROM памет
+#include <Arduino.h> // Основни типове и функции за Arduino
+#include <EEPROM.h>  // За работа с EEPROM памет
 //------------------------------------------------
 extern int addr106; // EEPROM адрес за секунди
 extern int addr107; // EEPROM адрес за часове
@@ -13,14 +13,14 @@ extern int komp;    // Пин за компресора
 class KompWork
 {
 private:
-    uint8_t kompPin;        // 32 Пинът на Arduino Mega, към който е свързан релето на компресора
-    int addrSeconds;        // addr106 EEPROM адрес за общите секунди работа
-    int addrHours;          // addr107 EEPROM адрес за общите часове работа
+    uint8_t kompPin; // 32 Пинът на Arduino Mega, към който е свързан релето на компресора
+    int addrSeconds; // addr106 EEPROM адрес за общите секунди работа
+    int addrHours;   // addr107 EEPROM адрес за общите часове работа
 
-    unsigned long totalSeconds;     // Натрупани секунди работа (в RAM)
-    unsigned long totalHours;       // Натрупани часове работа (в RAM)
+    unsigned long totalSeconds; // Натрупани секунди работа (в RAM)
+    unsigned long totalHours;   // Натрупани часове работа (в RAM)
 
-    uint8_t lastState;              // Последното състояние на компресора (HIGH/LOW)
+    uint8_t lastState;                   // Последното състояние на компресора (HIGH/LOW)
     unsigned long compressorStartMillis; // Време на последното включване (millis)
 
 public:

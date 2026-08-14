@@ -424,7 +424,7 @@ void Dat_potok_error()
 					lcd.setCursor(13, 2);
 					lcd.print(" ");
 				}
-				//lcd_NISHAN();
+				// lcd_NISHAN();
 				ALARM_ZUMER();
 			}
 		} while (dp == 1); // ако падне на 0 endl ???
