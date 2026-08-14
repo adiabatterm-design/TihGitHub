@@ -1,9 +1,23 @@
 #include "FUNK.h"
+#
+// FUNK.ino - защитни функции и общи помощни рутини
+//
+// Този файл съдържа основни защитни и помощни функции за системата:
+// - runProtectionChecks(): централизиран контрол на всички защити
+// - tempRead(): четене и валидация на NTC датчици
+// - различни защитни процедури (HP/LP, T2/T4/T5 високи/ниски температури)
+// - стоп/аларми и помощни дисплейни функции
+//
+// Забележка: логиката е чувствителна към хардуерните пинове и глобалните променливи
+// (декларирани в `main.h` / `main_vars.cpp`). Не променяйте пинове без синхронизация.
 #include "main.h"
 #include "NTC.h"
 #include "Nastroiki.h"
 // #include "work.h"
 
+extern int Komp;
+extern int addr106;
+extern int addr107;
 //-------------------------------------------------------------------------
 // Главен контролен блок за защитите.
 // Всички защитни проверки са обединени тук, за да основният loop не
@@ -15,15 +29,15 @@ void runProtectionChecks()
 	// Ако някоя защита открие опасност, системата трябва да спре или да се предпази.
 	// Правим това тук, за да не разсейваме логиката в различни части на кода.
 	Serial.println("runProtectionChecks - START");
-	Dat_potok_error();   // Проверяваме дали има поток в системата.
-	HP_ERROR_LCD();      // Проверяваме дали налягането е твърде високо.
-	LP_ERROR_LCD();      // Проверяваме дали налягането е твърде ниско.
-	MotorZ_RST();        // Проверяваме дали е активирана моторната защита.
-	High_temp_komp();    // Проверяваме дали компресорът е прегрял.
-	T2_HIGH_temp();      // Проверяваме дали температурата T2 е твърде висока.
-	T2_LOW_temp();       // Проверяваме дали температурата T2 е твърде ниска.
-	T4bgv_HIGH_temp();   // Проверяваме дали BGV/топлообменникът е прегрял.
-	WIFI_Stop();         // Проверяваме дали е активиран WiFi/термостат стоп.
+	Dat_potok_error(); // Проверяваме дали има поток в системата.
+	HP_ERROR_LCD();	   // Проверяваме дали налягането е твърде високо.
+	LP_ERROR_LCD();	   // Проверяваме дали налягането е твърде ниско.
+	MotorZ_RST();	   // Проверяваме дали е активирана моторната защита.
+	High_temp_komp();  // Проверяваме дали компресорът е прегрял.
+	T2_HIGH_temp();	   // Проверяваме дали температурата T2 е твърде висока.
+	T2_LOW_temp();	   // Проверяваме дали температурата T2 е твърде ниска.
+	// T4bgv_HIGH_temp();   // Проверяваме дали BGV/топлообменникът е прегрял.
+	// WIFI_Stop();         // Проверяваме дали е активиран WiFi/термостат стоп.
 	Serial.println("runProtectionChecks - END");
 }
 
@@ -410,7 +424,7 @@ void Dat_potok_error()
 					lcd.setCursor(13, 2);
 					lcd.print(" ");
 				}
-				lcd_NISHAN();
+				//lcd_NISHAN();
 				ALARM_ZUMER();
 			}
 		} while (dp == 1); // ако падне на 0 endl ???
@@ -481,7 +495,7 @@ void Dat_potok_error()
 	}
 	else
 	{
-		Serial.println("DP Sonda-HIGH - datPotok - HIGH");
+		Serial.println("DP Sonda-HIGH - datPotok - LOW - OK");
 	}
 
 	Serial.println("Dat_potok_error - end READ");
@@ -1362,13 +1376,16 @@ void EEPROM_READ()
 	// Serial.print("Tout _LETO = ");
 	// Serial.println(Tout_LETO);
 
-	// ATrab_korect = EEPROM.read(addr10); //@@@@
+	ATrab_korect = EEPROM.read(addr10); //@@@@
 	// Serial.print("ATrab_korect = ");
 	// Serial.println(ATrab_korect);
 
 	CHAKA = EEPROM.read(addr101);
 	// Serial.print("CHAKA = ");
 	// Serial.println(CKAKA);
+	// KompWorkTime
+	KompWork kkk(komp, addr106, addr107);
+	kkk.KWTloop();
 	//--------------------------------------
 	Serial.println("EEPROM_READ_END");
 }

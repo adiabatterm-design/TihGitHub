@@ -1,3 +1,7 @@
+// Menu_screen.ino
+// Отговорен за показване на основните данни на LCD: температури, индикатори
+// и кратки статуси. Съдържа помощна функция `printTemperatureValue` за унифицирано
+// отпечатване на температурни стойности.
 #include "Menu_screen.h"
 
 void printTemperatureValue(uint8_t col, uint8_t row, const char* label, float value)

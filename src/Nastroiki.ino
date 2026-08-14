@@ -972,12 +972,12 @@ void lcdMenu_temp5_nastroi()
 				Start_komp = millis();
 				//KompWorkTime
 				
-				KompWork kkkk(komp, addr106, addr107);
+				KompWork kkkk(Komp, addr106, addr107);
 				unsigned long lokkkk = kkkk.getHours();
 				
 				lcd.setCursor(2, 1);
 				lcd.print(L"Компресор часове");
-				lcd.setCursor(2, 2);
+				lcd.setCursor(4, 2);
 				lcd.print(lokkkk);
 				delay(10);
 				} while (digitalRead(pinLevo) == LOW);

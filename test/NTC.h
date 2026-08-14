@@ -2,18 +2,18 @@
 #include <Arduino.h>
 #include "main.h"
 
-float R2 = 10000.0;    // значение резистора R2
+extern float R2;    // значение резистора R2
 //int Tpin=A0;  // вывод к которму подключаен термистор
-float Du;       //считываемое напряжение
-float RT;       //сопротивление термистора
-float logR2, T; //
+extern float Du;    // считываемое напряжение
+extern float RT;    // съпротивление термистора
+// logR2 и T са декларирани като extern по-долу
 //c1, c2, c3 - коэффициенты Штейнхарта-Харта для термистора
-//float c1 = 0.001129148; 
-float c1 = 0.001129148; 
-//float c2 = 0.000234125; 
-float c2 = 0.000234125; 
-//float c3 = 0.0000000876741; 
-float c3 = 0.0000000876741; 
+extern float logR2; 
+extern float T;     // температура
+//c1, c2, c3 - коефициенти Штейнхарта-Харта за термистора
+extern float c1;
+extern float c2;
+extern float c3;
 
 float NTC(int Tpin);
 

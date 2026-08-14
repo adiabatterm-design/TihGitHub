@@ -108,7 +108,7 @@ void setup()
 	lcd.setCursor(3, 0);
 	lcd.print("SYSTEM TEST");
 	lcd.setCursor(4, 1);
-	lcd.print(L"09/08/2026");
+	lcd.print(L"13/08/2026");
 	lcd.setCursor(5, 2);
 	lcd.print("NTC 10K");
 
@@ -321,7 +321,7 @@ void runControlMode(ControlMode mode)
 	extern int addr106;
 	extern int addr107;
 
-	KompWork kk(komp, addr106, addr107);
+	KompWork kk(Komp, addr106, addr107);
 	kk.KWTsetup();
 }
 

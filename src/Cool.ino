@@ -200,6 +200,7 @@ void Cool::StartKompSonda()
                 else
                 {
                     lcd_NISHAN();
+                    Menu_screen();
                     ss = 1;
                 }
             }

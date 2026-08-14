@@ -177,11 +177,12 @@ void Heat::StartKompSonda()
                 else
                 {
                     lcd_NISHAN();
+                    Menu_screen();
                     ss = 1;
                 }
             }
-            // След 25 сек ако не е затворил DP - error
-            if ((millis() - heat_Chaka) / 1000 > 25)
+            // След 15 сек ако не е затворил DP - error
+            if ((millis() - heat_Chaka) / 1000 > 15)
             {
                 if (digitalRead(datPotok) == HIGH)
                 {

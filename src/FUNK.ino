@@ -424,7 +424,7 @@ void Dat_potok_error()
 					lcd.setCursor(13, 2);
 					lcd.print(" ");
 				}
-				lcd_NISHAN();
+				//lcd_NISHAN();
 				ALARM_ZUMER();
 			}
 		} while (dp == 1); // ако падне на 0 endl ???
@@ -495,7 +495,7 @@ void Dat_potok_error()
 	}
 	else
 	{
-		Serial.println("DP Sonda-HIGH - datPotok - HIGH");
+		Serial.println("DP Sonda-HIGH - datPotok - LOW - OK");
 	}
 
 	Serial.println("Dat_potok_error - end READ");

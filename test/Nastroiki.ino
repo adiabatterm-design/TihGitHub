@@ -1,13 +1,18 @@
 #include "Nastroiki.h"
+#include "main.h"
+// Nastroiki.ino - меню и редакция на настройки
+//
+// Този файл съдържа логиката за менюто за настройки (настройки на температури,
+// режими, таймери и други параметри). Основните помощни функции са:
+// - editSimpleSetting(): редакция на числови стойности с бутоните
+// - editBinarySetting(): редакция на булеви (0/1) стойности
+// - ALL_NASTROI(): вход за менюто и последователност от подменюта
+//
+// Менюто използва `lcd` за показване и бутоните `pinGore/pinDoly/pinLevo/pinDesno`
+// за навигация. Промените се записват в EEPROM чрез `EEPROM.update()`.
+//-------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------
-// Общи помощни функции за настройките.
-// Те правят менюто по-четимо, защото споделят една и съща логика за:
-// - показване на стойността,
-// - промяна с бутоните,
-// - запис в EEPROM,
-// - излизане с/без запис.
-//-------------------------------------------------------------------------
+
 bool editSimpleSetting(const char* title, int& value, int minValue, int maxValue, int address, bool showAsText)
 {
 	// Тази функция е обща за редактиране на числова стойност в менюто.
@@ -844,6 +849,7 @@ void lcdMenu_temp4_nastroi()
 //--------------@@@------------------------
 void lcdMenu_temp5_nastroi()
 {
+	//Позволени настройки по време на работа на компресора
 	uint8_t MySREG = SREG;
 	Serial.println("lcdMenu_temp5_nastroi - READ");
 	if (digitalRead(pinLevo) == LOW)
@@ -877,7 +883,8 @@ void lcdMenu_temp5_nastroi()
 			lcd.setCursor(2, 2);
 			lcd.print("Nastr DeltaT");
 			lcd.setCursor(2, 3);
-			lcd.print("-----------");
+			lcd.print("KompWorkTime");
+			//--------------------------------
 			// местим курсор
 			lcd.setCursor(0, Yp);
 			lcd.print(">");
@@ -957,15 +964,24 @@ void lcdMenu_temp5_nastroi()
 			// Избор подменю
 			if ((digitalRead(pinLevo) == LOW) && Yp == 3)
 			{
+				lcd.clear();
 				do
 				{
 					delay(50);
-				} while (digitalRead(pinLevo) == LOW);
+				
 				Start_komp = millis();
-				// T_C_nastroi();
+				//KompWorkTime
+				
+				KompWork kkkk(Komp, addr106, addr107);
+				unsigned long lokkkk = kkkk.getHours();
+				
+				lcd.setCursor(2, 1);
+				lcd.print(L"Компресор часове");
+				lcd.setCursor(4, 2);
+				lcd.print(lokkkk);
 				delay(10);
-				// AUTO_Trab_setup();
-				// AUTO_Trab_korect();
+				} while (digitalRead(pinLevo) == LOW);
+				
 			}
 			//-------------------------------end
 			// излизане от цикъла
@@ -1206,7 +1222,7 @@ void Read_Nastrroiki()
 		//-------------------------------
 		// Първо прочитаме текущите настройки от EEPROM.
 		// Топло - студено
-		T_C = EEPROM.read(addr4);
+		int T_C = EEPROM.read(addr4);
 		// Serial.print("T_C = ");
 		// Serial.println(T_C);
 
@@ -1582,7 +1598,8 @@ int AutoTrabToutSeting()
 	else
 	{
 		// настройва се Trab по addr0 за топло или студено
-		Trab = EEPROM.read(addr0);
+		if(T_C == 1) Trab = EEPROM.read(addr0);
+		else if(T_C == 0) Trab = EEPROM.read(addr01);
 	}
 	return Trab;
 

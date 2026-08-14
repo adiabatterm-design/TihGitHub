@@ -3,6 +3,17 @@
 #include "FUNK.h"
 #include "main.h"
 #include "NTC.h"
+#include "Clock_nastroi.h"
+#include "Menu_screen.h"
+#include "KompWorkTime.h"
+
+
+//-------------------------------------------------------------------------
+// Общи помощни функции за настройките.
+extern int addr106;
+extern int addr107;
+extern int Komp;
+//-------------------------------------------------------------------------
 
 //главни функции настройки
 void lcdMenu_temp1_nastroi();    //

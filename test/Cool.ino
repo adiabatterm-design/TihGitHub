@@ -1,3 +1,6 @@
+// Cool.ino
+// Логика за режима "Охлаждане". Управлява компресора и помпите
+// когато системата трябва да намали температурата (режим 'студено').
 #include "Cool.h"
 
 Cool::Cool() : ModeController(" C ")
@@ -7,7 +10,7 @@ Cool::Cool() : ModeController(" C ")
     loadSettings(); // Четем стойностите от EEPROM.
     cool_Chaka = millis(); // Започваме таймер за този режим.
     _4valve_Chaka = millis(); // Започваме и таймер за 4-ходовия клапан.
-    Serial.print("constructor Class_Cool = "); // Печатаме в сериен порт, че е създаден обект за охлаждане.
+    Serial.print("constructor Class_Cool_Trab = "); // Печатаме в сериен порт, че е създаден обект за охлаждане.
     Serial.println(Trab); // Показваме текущата стойност на Trab.
     prepareModeEntry(); // Подготвяме LCD и настройките за работа.
     EEPROM_READ(); // Прочитаме настройките още веднъж, за да сме сигурни в актуалността им.
@@ -40,9 +43,10 @@ void Cool::Start_Cool()
     ZashtitaCool();
     Dat_potok_error();
     ERROR_LCD();
-    // int Trab = EEPROM.read(addr0);
+    
+    int Trab = AutoTrabToutSeting();
     int Tbgv = EEPROM.read(addr5);
-    int Trab = EEPROM.read(addr01);
+    
     Serial.print("Trab = ");
     Serial.println(Trab);
     Serial.print("Tbgv = ");
@@ -196,6 +200,7 @@ void Cool::StartKompSonda()
                 else
                 {
                     lcd_NISHAN();
+                    Menu_screen();
                     ss = 1;
                 }
             }

@@ -49,11 +49,11 @@
     extern void CHAKA_300();
     extern void lcdMenu_temp5_nastroi();
     extern LiquidCrystalRus_I2C lcd;
-
+//----------------
 // Този клас е обща „база“ за всички режими на работа.
 // Идеята е проста: ако няколко режима правят едни и същи неща,
 // ние ги пишем веднъж тук, а всяка конкретна логика остава в с
-воя клас.
+// воя клас.
 class ModeController
 {
 protected:

@@ -3,14 +3,17 @@
 #include <Arduino.h>
 #include <avr/wdt.h>
 #include <EEPROM.h>
+
 #include "main.h"
 #include "Clock_nastroi.h"
 #include "Menu_screen.h"
 #include "NTC.h"
 #include "Nastroiki.h"
+#include "WIFI.h"
+#include "KompWorkTime.h"
 
-
-bool flagAutoTrab = LOW;
+// Флаг за автоматична работа - деклариран като extern, дефиницията е в main_vars.cpp
+extern bool flagAutoTrab;
 //настройки
 //-------1----------
 
@@ -24,11 +27,11 @@ void Dat_potok_error();
 void T2_HIGH_temp();
 void T2_LOW_temp();
 void T4bgv_HIGH_temp();
-void T5_LED_temp();          // led sonda
+void T5_LED_temp();           // led sonda
 void MotorZ_RST();
 void HP_ERROR_LCD();
 void LP_ERROR_LCD();
-void RESET();                   //
+void RESET();                 //
 void High_outdour_temp_stop();  //@@@
 void LOW_outdoor_temp_stop();
 void WIFI_Stop();

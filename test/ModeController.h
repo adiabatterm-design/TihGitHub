@@ -1,9 +1,59 @@
 #pragma once
 #include <Arduino.h>
+#include "main.h"
+#include "EEPROM.h"
+#include "FUNK.h"
+#include "Nastroiki.h"
 
+// ModeController.h
+// Базов клас за различните режими на работа (BGV / HEAT / COOL).
+// Тук са дефинирани общите помощни функции и полета, които се споделят
+// между конкретните режими. Конкретните режими имплементират `runProtection`
+// и `applyModeSpecificRelayState`.
+
+        extern int Trab;
+        extern int T_C;
+        extern int Tbgv;
+        extern int Tmax;
+        extern int Tmin;
+        extern int DT;
+        extern int Tled;
+        extern int CHAKA;
+        extern int flagHEAT;
+        extern int flagCOOL;
+        extern int flagBGV;
+    //----------------
+    extern int addr0;
+    extern int addr01;
+    extern int addr1;
+    extern int addr2;
+    extern int addr3;
+    extern int addr4;
+    extern int addr5;
+    extern int addr8;
+    extern int addr81;
+    extern int addr9;
+    extern int addr10;
+    extern int addr101;
+    extern int addr102;
+    extern int addr103;
+    extern int addr104;
+    extern int addr105;
+//----------------
+    extern void EEPROM_READ();
+    extern void tempRead();
+    extern void clockTime();
+    extern void Menu_screen();
+    extern void Read_Nastrroiki();
+//----------------
+    extern void CHAKA_300();
+    extern void lcdMenu_temp5_nastroi();
+    extern LiquidCrystalRus_I2C lcd;
+//----------------
 // Този клас е обща „база“ за всички режими на работа.
 // Идеята е проста: ако няколко режима правят едни и същи неща,
-// ние ги пишем веднъж тук, а всяка конкретна логика остава в своя клас.
+// ние ги пишем веднъж тук, а всяка конкретна логика остава в с
+// воя клас.
 class ModeController
 {
 protected:
@@ -45,7 +95,8 @@ protected:
     // Четем настройките от EEPROM, защото това е „паметта“ на системата.
     void loadSettings()
     {
-        Trab = EEPROM.read(addr0);   // Четем зададената температура за режим топло/студено.
+        //Trab = EEPROM.read(addr0);   // Четем зададената температура за режим топло/студено.
+        Trab = AutoTrabToutSeting();   // Четем зададената температура за режим топло/студено.
         T_C = EEPROM.read(addr4);    // Четем режима: 1 = топло, 0 = студено.
         Tbgv = EEPROM.read(addr5);   // Четем зададената температура за БГВ.
         Tmax = EEPROM.read(addr1);   // Четем горната граница за температура.
@@ -73,7 +124,7 @@ protected:
     // Показваме името на текущия режим на LCD.
     void showModeLabel()
     {
-        lcd.setCursor(15, 2); // Поставяме курсора в последния ред, втора колона.
+        lcd.setCursor(15, 2); // Поставяме курсора в 15 ред, втора колона.
         lcd.print(modeLabel); // Печатаме името на режима.
     }
 
@@ -89,19 +140,37 @@ protected:
     void applyCommonRelayState(bool enablePumpBgv, bool enablePumpBuffer, bool enableFourValve)
     {
         if (enablePumpBgv)
-            PumpBGV_ON;   // Ако е нужно, включваме помпата за БГВ.
+        {
+            digitalWrite(PumpBGV, HIGH);
+            delay(10);
+        }
         else
-            PumpBGV_OFF;  // Ако не е нужно, я изключваме.
+        {
+            digitalWrite(PumpBGV, LOW);
+            delay(10);
+        }
 
         if (enablePumpBuffer)
-            PumpBUFFER_ON; // Ако е нужно, включваме буферната помпа.
+        {
+            digitalWrite(PumpBUFFER, HIGH);
+            delay(10);
+        }
         else
-            PumpBUFFER_OFF; // Ако не е нужно, я изключваме.
+        {
+            digitalWrite(PumpBUFFER, LOW);
+            delay(10);
+        }
 
         if (enableFourValve)
-            _4valve_ON;   // Ако е нужно, включваме 4-ходовия клапан.
+        {
+            digitalWrite(_4valve, LOW);
+            delay(10);
+        }
         else
-            _4valve_OFF;  // Ако не е нужно, го изключваме.
+        {
+            digitalWrite(_4valve, HIGH);
+            delay(10);
+        }
     }
 
     // Тези функции са „абстракция“ — всяка конкретна логика ги реализира по различен начин.

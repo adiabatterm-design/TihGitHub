@@ -56,8 +56,8 @@ void recallClockSettings()
 	do
 	{
 		lcd.setCursor(0, 2);
-		extern bool last_clock;
-		extern bool last_komp;
+		//extern bool last_clock;
+		//extern bool last_komp;
 		lcd.print("Re-Clock nastroiki");
 		Serial.println("Re-Clock nastroiki");
 		delay(50);

@@ -1,4 +1,8 @@
 #include "Clock_nastroi.h"
+// Clock_nastroi.ino
+// Управление и настройки на реално-времевия часовник (DS1307).
+// Тук се намират функциите за четене/настройка на датата и часа,
+// както и помощни променливи за състоянието на часовника/компресора.
 
 // чете време и изписва на екран - работно OK
 void clockTime()
@@ -52,6 +56,8 @@ void recallClockSettings()
 	do
 	{
 		lcd.setCursor(0, 2);
+		//extern bool last_clock;
+		//extern bool last_komp;
 		lcd.print("Re-Clock nastroiki");
 		Serial.println("Re-Clock nastroiki");
 		delay(50);

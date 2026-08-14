@@ -1,5 +1,9 @@
+// Heat.ino
+// Логика за режима "Отопление". Този файл представя класа `Heat` —
+// специфичната логика за отоплителен режим: управление на компресора,
+// помпите и защитите, за да се достигне и поддържа зададената температура.
 #include "Heat.h"
-// constructor Heat - inicializazia
+// constructor Heat - inicializacia
 Heat::Heat() : ModeController(" T ")
 {
      //--------------------------------
@@ -173,11 +177,12 @@ void Heat::StartKompSonda()
                 else
                 {
                     lcd_NISHAN();
+                    Menu_screen();
                     ss = 1;
                 }
             }
-            // След 25 сек ако не е затворил DP - error
-            if ((millis() - heat_Chaka) / 1000 > 25)
+            // След 15 сек ако не е затворил DP - error
+            if ((millis() - heat_Chaka) / 1000 > 15)
             {
                 if (digitalRead(datPotok) == HIGH)
                 {

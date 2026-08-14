@@ -1,86 +1,107 @@
-#include "KompWorkTime.h"
-#include <Arduino.h>
-#include <EEPROM.h>
+// KompWorkTime.ino
+// Малък помощен модул за следене на общото време на работа на компресора.
+// Този клас записва натрупаните секунди и часове в EEPROM, за да може
+// да се проследи експлоатационното време на компресора.
+#include "KompWorkTime.h"   // Включваме хедъра на класа
 
-//constructor
-KompWork::KompWork(uint8_t komp, int addr106)
+// ------------------------------------------------------------
+// КОНСТРУКТОР
+// ------------------------------------------------------------
+KompWork::KompWork(uint8_t kompPin, int addrSeconds, int addrHours)
 {
-    this->komp = komp;
-    this->addr106 = addr106;
-    KompTotalTimeWork = EEPROM.read(addr107);
-}
+    this->kompPin = kompPin;        // Запомняме пина на компресора
+    this->addrSeconds = addrSeconds; // EEPROM адрес за секунди
+    this->addrHours = addrHours;     // EEPROM адрес за часове
 
-//--------------------------------------
-// Първоначални настройки
-void KompWork::KompWorkTimeSetup()
-{
-  // Настоящият ви код за LCD и DS1307...
-    // Прочитане на записаните секунди от EEPROM при стартиране
-  EEPROM.get(addr106, totalSeconds);
-  EEPROM.get(addr10, KompTotalTimeWork);
-  
-  // Защита: Ако EEPROM е празна (нов чип), стойността ще е 4294967295. Нулираме я веднъж.
-  if (totalSeconds == 0xFFFFFFFF) {
-    totalSeconds = 0;
-    EEPROM.put(addr106, totalSeconds);
-  }
-  if (KompTotalTimeWork == 0xFFFFFFFF) {
-    KompTotalTimeWork = 0;
-    EEPROM.put(addr107, KompTotalTimeWork);
-  }
+    // Четем стойностите от EEPROM (4 байта)
+    EEPROM.get(addrSeconds, totalSeconds);
+    EEPROM.get(addrHours, totalHours);
 
+    lastState = LOW;                // Първоначално приемаме, че компресорът е изключен
+    compressorStartMillis = 0;      // Няма стартово време
 
+    // Ако EEPROM е празна → стойността е 0xFFFFFFFF → нулираме
+    if (totalSeconds == 0xFFFFFFFF) totalSeconds = 0;
+    if (totalHours == 0xFFFFFFFF) totalHours = 0;
 }
 
 
-void KompWorkTimeloop() {
-    // setup pins for button inputs
-    KompWorkTimeSetup();
+//--------------------------------------------------------------
+// Настройка на пиновете
+void KompWork::KWTsetup()
+{
+    kompPin = 32;
+    addrSeconds = addr106;
+    addrHours   = addr107;
+}
+// ------------------------------------------------------------
+// LOOP — следи компресора и записва времето
+// ------------------------------------------------------------
+void KompWork::KWTloop()
+{
+    //KWTsetup();
+    uint8_t state = digitalRead(kompPin);  // Четем текущото състояние на компресора
 
-  // 1. СЛЕДЕНЕ НА РАБОТАТА НА КОМПРЕСОРА
-  bool currentCompressorState = digitalRead(komp);
-  
-  // Ако компресорът току-що се е включил
-  if (currentCompressorState == HIGH && lastCompressorState == LOW) {
-    compressorStartMillis = millis();
-  }
-  
-  // Ако компресорът работи в момента, обновяваме временното време в движение на всеки 60 секунди
-  if (currentCompressorState == HIGH) {
-    unsigned long elapsedMillis = millis() - compressorStartMillis;
-    if (elapsedMillis >= 60000) { // Изминала е 1 минута
-      totalSeconds += 60;
-      compressorStartMillis = millis(); // Рестартираме брояча за следващата минута
-      EEPROM.put(addr106, totalSeconds); // Запис в EEPROM (защитен от спиране на тока)
+    // --------------------------------------------------------
+    // 1. Компресорът току-що се е включил
+    if (state == HIGH && lastState == LOW)
+    {
+        compressorStartMillis = millis();  // Запомняме момента на включване
     }
-  }
-  
-  // Ако компресорът току-що е изключил, записваме оставащите секунди
-  if (currentCompressorState == LOW && lastCompressorState == HIGH) {
-    unsigned long elapsedSeconds = (millis() - compressorStartMillis) / 1000;
-    totalSeconds += elapsedSeconds;
-    EEPROM.put(addr106, totalSeconds); // Финален запис за този работен цикъл
-  }
-  
-  lastCompressorState = currentCompressorState;
 
+    // --------------------------------------------------------
+    // 2. Компресорът работи в момента
+    // --------------------------------------------------------
+    if (state == HIGH)
+    {
+        unsigned long elapsed = millis() - compressorStartMillis; // Колко време работи
 
-  //// 2. СЛЕДЕНЕ НА БУТОНА ЗА ПОКАЗВАНЕ НА ЧАСОВЕТЕ
-  //if (digitalRead(pinGore) == LOW && digitalRead(ReadNastr) == LOW) { // Бутонът е натиснат
-  //  //lcd.clear();
-  //  showKompWorkTimeHours();
-  //  delay(300); // Дебънс (против трептения на бутона)
-  //}
-  
-  // Вашият останал код за управление на термопомпата и показване на часа от DS1307...
+        // Ако е минала 1 минута,
+        if (elapsed >= 60000)
+        {
+            totalSeconds += 60;           // Добавяме 60 секунди
+            compressorStartMillis = millis(); // Рестартираме таймера
+
+            // Ако секундите са кратни на 3600 → минал е 1 час
+            if (totalSeconds % 3600 == 0)
+            {
+                totalHours++;             // Увеличаваме часовете
+                EEPROM.put(addrHours, totalHours); // Записваме в EEPROM
+            }
+
+            EEPROM.put(addrSeconds, totalSeconds); // Записваме секундите
+        }
+    }
+
+    // --------------------------------------------------------
+    // 3. Компресорът току-що е изключил
+    // --------------------------------------------------------
+    if (state == LOW && lastState == HIGH)
+    {
+        unsigned long elapsed = (millis() - compressorStartMillis) / 1000;
+        totalSeconds += elapsed;          // Добавяме последните секунди
+
+        // Ако секундите са >= 3600 → пресмятаме часовете
+        if (totalSeconds >= 3600)
+        {
+            totalHours = totalSeconds / 3600;
+            EEPROM.put(addrHours, totalHours);
+        }
+
+        EEPROM.put(addrSeconds, totalSeconds); // Записваме секундите
+    }
+
+    // Запомняме последното състояние
+    lastState = state;
 }
 
-
-
-unsigned long showKompWorkTimeHours()
+// ------------------------------------------------------------
+// Връща общите часове работа
+// ------------------------------------------------------------
+unsigned long KompWork::getHours()
 {
-  unsigned long KWTime = EEPROM.read(addr106);
-
+    Serial.println("KompTotalHourst = " + totalHours);
+    return totalHours;   // Връщаме часовете
 }
 
 

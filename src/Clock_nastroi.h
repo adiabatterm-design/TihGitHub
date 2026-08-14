@@ -8,8 +8,8 @@
 
 //отчитане на отработени часове
 //boolean timeLastSave = LOW;
-extern bool last_clock;
-extern bool last_komp ;
+//extern bool last_clock;
+//extern bool last_komp ;
 
 //време забавяния
 
