@@ -108,7 +108,7 @@ void setup()
 	lcd.setCursor(3, 0);
 	lcd.print("SYSTEM TEST");
 	lcd.setCursor(4, 1);
-	lcd.print(L"13/08/2026");
+	lcd.print(L"14/08/2026");
 	lcd.setCursor(5, 2);
 	lcd.print("NTC 10K");
 
@@ -255,17 +255,17 @@ const char *modeName(ControlMode mode)
 	switch (mode)
 	{
 	case CONTROL_MODE_BGV:
-		Serial.println("===BGV===");
+		Serial.println("===BGV===1");
 		return "BGV";
 	case CONTROL_MODE_HEAT:
-		Serial.println("===HEAT===");
+		Serial.println("===HEAT===1");
 		return "HEAT";
 	case CONTROL_MODE_COOL:
-		Serial.println("===COOL===");
+		Serial.println("===COOL===1");
 		return "COOL";
 	case CONTROL_MODE_IDLE:
 	default:
-		Serial.println("===FREE===WORK===");
+		Serial.println("===FREE===WORK===1");
 		return "IDLE";
 	}
 }

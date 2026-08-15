@@ -545,11 +545,17 @@ void HP_ERROR_LCD()
 			{
 				wdt_reset();
 				STOP_ALL;
+				ALARM_ZUMER();
 				Serial.print("Reset = ");
 				Serial.println(80 - rr * 8);
 				delay(7900);
 			}
-
+			int hp = EEPROM.read(addr111);
+			hp++;
+			EEPROM.update(addr111, hp); //@@@
+			Serial.print("HP_ERROR_addr111 = " +String(hp));
+			// reset system
+			delay(1000);
 			asm volatile(
 				"cli \n\t"
 				"jmp 0x0000 \n\t");
