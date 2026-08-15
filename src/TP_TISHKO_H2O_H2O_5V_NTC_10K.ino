@@ -47,7 +47,6 @@
 #include "Heat.h"
 #include "KompWorkTime.h"
 
-
 int rest_wdt = 0;
 
 //-------------------SETUP------
@@ -108,7 +107,7 @@ void setup()
 	lcd.setCursor(3, 0);
 	lcd.print("SYSTEM TEST");
 	lcd.setCursor(4, 1);
-	lcd.print(L"14/08/2026");
+	lcd.print(L"15/08/2026");
 	lcd.setCursor(5, 2);
 	lcd.print("NTC 10K");
 
@@ -212,11 +211,11 @@ ControlMode selectControlMode()
 {
 	// Първо четем настройките от EEPROM.
 	// Това е важно, защото управляващият код трябва да работи с последните стойности.
-	int flagBGV = EEPROM.read(addr105); // Проверяваме дали БГВ режимът е разрешен.
+	int flagBGV = EEPROM.read(addr105);	 // Проверяваме дали БГВ режимът е разрешен.
 	int flagHEAT = EEPROM.read(addr103); // Проверяваме дали отоплението е разрешено.
 	int flagCOOL = EEPROM.read(addr104); // Проверяваме дали охлаждането е разрешено.
-	int T_C = EEPROM.read(addr4);        // Четем дали системата е в режим „топло“ или „студено“.
-	int Tbgv = EEPROM.read(addr5);       // Четем зададената температура за БГВ.
+	int T_C = EEPROM.read(addr4);		 // Четем дали системата е в режим „топло“ или „студено“.
+	int Tbgv = EEPROM.read(addr5);		 // Четем зададената температура за БГВ.
 	int Trab = AutoTrabToutSeting();
 	// Първо проверяваме БГВ, защото той има най-висок приоритет.
 	// Причина: битовата гореща вода често е спешна и трябва да се обслужи
@@ -245,7 +244,7 @@ ControlMode selectControlMode()
 	}
 
 	// Ако не е изпълнено нито едно от горните условия, системата остава в безопасно състояние.
-		Serial.println("===FREE++WORK===1");
+	Serial.println("===FREE++WORK===1");
 	return CONTROL_MODE_IDLE; // Няма активен режим, спираме всичко.
 }
 
@@ -314,7 +313,7 @@ void runControlMode(ControlMode mode)
 		break;
 	}
 	}
-	
+
 	//-----------------------------------
 	// Време работа на компресора - setup pin и зареждане от EEPROM
 	extern int Komp;
@@ -397,18 +396,18 @@ void loop()
 	// 7) След защитите решаваме кой режим трябва да бъде активен.
 	// Това е централната логика на управляващия код.
 	static ControlMode currentMode = CONTROL_MODE_IDLE; // Запомняме последния активен режим.
-	ControlMode requestedMode = selectControlMode();    // Изчисляваме ново желание за режим.
+	ControlMode requestedMode = selectControlMode();	// Изчисляваме ново желание за режим.
 
 	// 8) Ако режимът е сменен, първо спираме всички изходи.
 	// По този начин старият режим не остава да работи паралелно с новия.
 	if (requestedMode != currentMode)
 	{
-		Serial.print("Mode transition: "); // Печатаме предишния режим.
-		Serial.print(modeName(currentMode)); // Печатаме текущия режим.
-		Serial.print(" -> ");              // Показваме стрелка към новия режим.
+		Serial.print("Mode transition: ");		 // Печатаме предишния режим.
+		Serial.print(modeName(currentMode));	 // Печатаме текущия режим.
+		Serial.print(" -> ");					 // Показваме стрелка към новия режим.
 		Serial.println(modeName(requestedMode)); // Печатаме новия режим.
-		STOP_ALL; // Спираме всички релета, за да няма конфликт.
-		currentMode = requestedMode; // Запомняме новия режим като активен.
+		STOP_ALL;								 // Спираме всички релета, за да няма конфликт.
+		currentMode = requestedMode;			 // Запомняме новия режим като активен.
 	}
 
 	// 9) След като знаем кой режим е правилният, изпълняваме съответния контролер.
