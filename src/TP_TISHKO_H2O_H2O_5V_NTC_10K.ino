@@ -17,7 +17,7 @@
 	github: https://github.com/adiabatterm-design/TihGitHub.git
 */
 // ARDUINO MEGA 2560 - LCD 20x4
-// Последна редакция 01,08,2026 г.
+// Последна редакция 15,08,2026 г.
 // Прегледано - тествано
 
 #include <EEPROM.h>
