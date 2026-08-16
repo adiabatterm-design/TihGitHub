@@ -5,9 +5,10 @@
 	Name:       TP_TISHKO_NEW.ino
 	Created:	9,10,2023 г.
 	Author:     tvp\tih
+	git   https://github.com/adiabatterm-design/TihGitHub.git
 */
 // ARDUINO MEGA 2560 - LCD 20x4
-// Последна редакция 9,10,2025 г.
+// Последна редакция 16,08,2026 г.
 // Прегледано - тествано
 
 #include <EEPROM.h>
