@@ -4,7 +4,7 @@
 #include <avr/wdt.h>
 #include <EEPROM.h>
 
-#include "main.h"
+#include "Config.h"
 #include "Clock_nastroi.h"
 #include "Menu_screen.h"
 #include "NTC.h"

@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include "FUNK.h"
-#include "main.h"
+#include "Config.h"
 #include "NTC.h"
 #include "Clock_nastroi.h"
 #include "Menu_screen.h"

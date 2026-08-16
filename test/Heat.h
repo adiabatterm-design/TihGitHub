@@ -1,7 +1,7 @@
 #pragma once
-#include "main.h"
+#include "Config.h"
 #include "FUNK.h"
-#include "main.h"
+#include "Config.h"
 #include "NTC.h"
 #include "Nastroiki.h"
 #include "Clock_nastroi.h"

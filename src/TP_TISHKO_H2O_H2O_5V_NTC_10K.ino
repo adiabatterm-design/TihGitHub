@@ -1,23 +1,13 @@
-// Термопомпа въздух-вода и БГВ (битова гореща вода) - проект "Тишко"
-//
-// Този файл съдържа основната програма за Arduino MEGA 2560:
-// - `setup()` инициализира хардуера (пинове, LCD, RTC, WDT и т.н.)
-// - `loop()` изпълнява главния контролен цикъл: четене на сензори,
-//   проверки за защита, избор на режим (БГВ/ОТОПЛЕНИЕ/ОХЛАЖДАНЕ) и изпълнение
-//   на съответния режим чрез диспечерската функция `runControlMode()`.
-//
-// Внимание: повечето глобални променливи и обекти (LCD, RTC, пинове и т.н.)
-// са декларирани като `extern` в `main.h` и дефинирани в `src/main_vars.cpp`.
+// Термопомпа въздух вода  и БГВ Тишко София
 /*
 	TP_TISHKO\src
 
 	Name:       TP_TISHKO_NEW.ino
 	Created:	9,10,2023 г.
 	Author:     tvp\tih
-	github: https://github.com/adiabatterm-design/TihGitHub.git
 */
 // ARDUINO MEGA 2560 - LCD 20x4
-// Последна редакция 15,08,2026 г.
+// Последна редакция 9,10,2025 г.
 // Прегледано - тествано
 
 #include <EEPROM.h>
@@ -37,20 +27,22 @@
 #include <math.h>
 //----------------
 #include "FUNK.h"
-#include "main.h"
+#include "Config.h"
 #include "Menu_screen.h"
 #include "NTC.h"
 #include "Clock_nastroi.h"
 #include "Nastroiki.h"
+#include "KompWorkTime.h"
 //----------------
 #include "BGV.h"
 #include "Cool.h"
 #include "Heat.h"
-#include "KompWorkTime.h"
 
 int rest_wdt = 0;
+extern int addr106; // EEPROM адрес за секунди
+extern int addr107; // EEPROM адрес за часове
 
-//-------------------SETUP------
+//--------------------------------------SETUP------
 void setup()
 {
 	// Serial
@@ -58,12 +50,6 @@ void setup()
 	// инициализация на часовника
 	clock.begin();
 
-	// --- Конфигурация на хардуерните пинове ---
-	// Всеки `pinMode()` задава дали даден пин ще бъде вход (бутон/датчик)
-	// или изход (реле). Входовете използват `INPUT_PULLUP`, за да се уеднакви
-	// логиката на натискане (LOW = натиснат при активни pull-up).
-	// Изходите се ползват за управление на релета/помпи/аларма.
-	// Ако смените пиновете, променете дефинициите в `main_vars.cpp`.
 	// конфигурация на пинове
 	// pin interrupt - HP, LP
 	// pinMode(MZint, INPUT_PULLUP);
@@ -102,18 +88,16 @@ void setup()
 	lcd.init();
 	lcd.backlight();
 	// Print a message to the LCD.
-	// Показваме кратко съобщение при стартиране за визуална проверка,
-	// след което по-нататък меню/информация се обновява от `Menu_screen()`.
 
 	lcd.setCursor(3, 0);
 	lcd.print("SYSTEM TEST");
 	lcd.setCursor(4, 1);
-	lcd.print(L"15/08/2026");
+	lcd.print(L"15/07/2026");
 	lcd.setCursor(5, 2);
 	lcd.print("NTC 10K");
 
 	lcd.setCursor(3, 3);
-	lcd.print("TVP_08_2026");
+	lcd.print("TVP_07_2026");
 
 	delay(1000); // @@@ 5 sec
 	lcd.clear();
@@ -133,9 +117,6 @@ void setup()
 
 	tempReadTime = millis(); // да прескочи yield()
 
-	// --- Първо/начално четене на температурни датчици ---
-	// Първоначално тук правим еднократно четене, за да попълним началните стойности.
-	// По-нататък `tempRead()` ще актуализира тези променливи в основния цикъл.
 	// четене темп
 	t1 = (int)NTC(A0);
 	t2 = (int)NTC(A1);
@@ -156,10 +137,6 @@ void setup()
 
 	//@@@
 	//--------------------------------------------------
-	// ------------- Настройка на (възможни) прекъсвания ------------------
-	// В проекта има коментари/маркирани attachInterrupt() извиквания. Ако искате
-	// да използвате хардуерни прекъсвания за HP/LP/RESET, разкоментирайте
-	// съответните `attachInterrupt()` редове и осигурете правилни пинове.
 	//-------------interrupt----------------------------
 	// attachInterrupt(digitalPinToInterrupt(MZint), MZ_ERROR, RISING);
 	// attachInterrupt(digitalPinToInterrupt(RSTint), RST_ERROR, RISING);
@@ -167,7 +144,20 @@ void setup()
 	// attachInterrupt(digitalPinToInterrupt(LPinter), LP_ERROR, RISING);
 
 	//-------------------------------------------------
-	// zav_nastr(); ///@@@
+	// Проверка на флагове за работа
+	if (flagHEAT >= 2 || flagHEAT < 0)
+	{
+		zav_nastr(); // зареждане на заводски настройки
+	}
+	if (flagCOOL >= 2 || flagCOOL < 0)
+	{
+		zav_nastr(); // зареждане на заводски настройки
+	}
+	if (flagBGV >= 2 || flagBGV < 0)
+	{
+		zav_nastr(); // зареждане на заводски настройки
+	}
+	//----------------------------------------------
 	//  зареждане на заводски настройки - бутон desno
 	//  извиква заводски настройки
 	if (digitalRead(pinDesno) == LOW)
@@ -175,9 +165,7 @@ void setup()
 		zav_nastr();
 	}
 
-	// Зареждане на настройки от EEPROM и извикване на меню за първоначално
-	// настройване (ако е необходимо). `EEPROM_READ()` изпълнява четене от паметта
-	// и обновява вътрешните настройки. `ALL_NASTROI()` отваря/инициира менюто.
+	// Зареждане на настройки;
 	EEPROM_READ();
 	//   извиква меню настройки
 	ALL_NASTROI();
@@ -191,139 +179,21 @@ void setup()
 			delay(50);
 		} while (digitalRead(pinDesno) == LOW);
 	}
+	//--------------------------
+	// Работно време компресор
+	// Инициализация на пин и адреси за работното време на компресора
+	KompWork KWTime(32, addr106, addr107);
 
 	//-------------------------------------------------
 	// timer from temp read
 
-	// Включваме watchdog (защита срещу забиване). Тук е настроен на 8 секунди.
-	// В основния цикъл трябва периодично да се вика `wdt_reset()` за поддържане.
+	////tethered dog привързано куче @@@
 	wdt_enable(WDTO_8S);
 	delay(100);
 	lcd.clear();
 	Start_komp = millis();
 
 } //----------------end setup--------------------------
-
-//-------------------------------------------------------------------------
-// Helper functions for the control state machine.
-// Те са отделени тук, за да не смесват логиката на режима с основния loop.
-//-------------------------------------------------------------------------
-ControlMode selectControlMode()
-{
-	// Първо четем настройките от EEPROM.
-	// Това е важно, защото управляващият код трябва да работи с последните стойности.
-	int flagBGV = EEPROM.read(addr105);	 // Проверяваме дали БГВ режимът е разрешен.
-	int flagHEAT = EEPROM.read(addr103); // Проверяваме дали отоплението е разрешено.
-	int flagCOOL = EEPROM.read(addr104); // Проверяваме дали охлаждането е разрешено.
-	int T_C = EEPROM.read(addr4);		 // Четем дали системата е в режим „топло“ или „студено“.
-	int Tbgv = EEPROM.read(addr5);		 // Четем зададената температура за БГВ.
-	int Trab = AutoTrabToutSeting();
-	// Първо проверяваме БГВ, защото той има най-висок приоритет.
-	// Причина: битовата гореща вода често е спешна и трябва да се обслужи
-	// преди отоплителните цикли (ако има нужда).
-	// Ако входната температура е под зададената граница, системата избира БГВ.
-	if (flagBGV == 1 && *tt3_BGV_IN < Tbgv - DT)
-	{
-		Serial.println("===BGV===1");
-		return CONTROL_MODE_BGV; // Върни режим БГВ, ако условието е вярно.
-	}
-
-	// Ако БГВ не е активен или не е време за него, пробваме отопление.
-	// Това става само ако системата е настроена в режим „топло“.
-	if (flagHEAT == 1 && T_C == 1 && *tt1 <= Trab - DT)
-	{
-		Serial.println("===HEAT===1");
-		return CONTROL_MODE_HEAT; // Върни режим отопление.
-	}
-
-	// Ако няма отопление, тогава пробваме охлаждане.
-	// Това става само ако системата е настроена в режим „студено“.
-	if (flagCOOL == 1 && T_C == 0 && *tt1 >= Trab + DT)
-	{
-		Serial.println("===COOL===1");
-		return CONTROL_MODE_COOL; // Върни режим охлаждане.
-	}
-
-	// Ако не е изпълнено нито едно от горните условия, системата остава в безопасно състояние.
-	Serial.println("===FREE++WORK===1");
-	return CONTROL_MODE_IDLE; // Няма активен режим, спираме всичко.
-}
-
-const char *modeName(ControlMode mode)
-{
-	// Това е само за по-ясно серийно логване. Помага при отстраняване на грешки.
-	switch (mode)
-	{
-	case CONTROL_MODE_BGV:
-		Serial.println("===BGV===1");
-		return "BGV";
-	case CONTROL_MODE_HEAT:
-		Serial.println("===HEAT===1");
-		return "HEAT";
-	case CONTROL_MODE_COOL:
-		Serial.println("===COOL===1");
-		return "COOL";
-	case CONTROL_MODE_IDLE:
-	default:
-		Serial.println("===FREE===WORK===1");
-		return "IDLE";
-	}
-}
-
-void runControlMode(ControlMode mode)
-{
-	// Тази функция е диспечер: създава подходящ обект (BGV/Heat/Cool)
-	// и извиква неговия стартов метод. Всеки конкретен режим инкапсулира
-	// своята логика за включване/изключване на релета и управление на помпи.
-	switch (mode)
-	{
-	case CONTROL_MODE_BGV:
-	{
-		// Ако е избран БГВ режим, създаваме обект за БГВ и стартираме неговата логика.
-		BGV modeController;
-		Serial.println("===Start_BGV2===");
-		modeController.Start_BGV();
-		Serial.println("===Start_BGV2_END===");
-		break;
-	}
-	case CONTROL_MODE_HEAT:
-	{
-		// Ако е избран режим отопление, създаваме обект за отопление и стартираме логиката му.
-		Heat modeController;
-		Serial.println("===Start_Heat2===");
-		modeController.Start_Heat();
-		Serial.println("===Start_Heat2_END===");
-		break;
-	}
-	case CONTROL_MODE_COOL:
-	{
-		// Ако е избран режим охлаждане, създаваме обект за охлаждане и стартираме логиката му.
-		Cool modeController;
-		Serial.println("===Start_Cool2===");
-		modeController.Start_Cool();
-		Serial.println("===Start_Cool2_END===");
-		break;
-	}
-	case CONTROL_MODE_IDLE:
-	default:
-	{
-		// Ако няма избран режим, просто спираме всичките изходи.
-		// Това е безопасен вариант, когато системата няма какво да прави.
-		Serial.println("===STOP_ALL2_END===");
-		STOP_ALL;
-		break;
-	}
-	}
-
-	//-----------------------------------
-	// Време работа на компресора - setup pin и зареждане от EEPROM
-	extern int Komp;
-	extern int addr106;
-	extern int addr107;
-
-	KompWork kk(Komp, addr106, addr107);
-	kk.KWTsetup();
-}
 
 // funk interrupt--------------------------------------
 void MZ_ERROR()
@@ -358,61 +228,114 @@ void LP_ERROR()
 //___________loop_____________loop________________loop
 void loop()
 {
-	// Това е главният цикъл на системата.
-	// Той работи като последователност от стъпки: първо четене, после защити, после решение и накрая управление.
-
-	// 1) Поддържаме watchdog-а жив, за да не се рестартира контролерът.
-	//    Това се прави възможно най-рано в цикъла, преди операции, които може да
-	//    отнемат повече време.
+	// кучето пуснато, tethered dog-привързано куче
+	// wdt_enable(WDTO_8S);
 	wdt_reset();
 
-	// 2) Зареждаме най-новите стойности от EEPROM.
-	//    EEPROM може да бъде актуализиран от меню/бутон; тук правим бързо синхронизиране.
+	// зареждане на настройки от EEPROM
 	EEPROM_READ();
-
-	// 3) Ако потребителят е в меню за настройки, показваме информация на LCD.
-	// Това не променя управляващата логика, а само визуалното представяне.
+	// Пускаме помпи
+	// PumpBGV_ON;
+	// PumpBUFFER_ON;
+	//----------------------------------------
+	// извеждане на настройки на екрана бутон READ_NASTROIKI
 	Read_Nastrroiki();
-	lcdMenu_temp5_nastroi();
+	lcdMenu_temp5_nastroi(); // Разрешено по време на работа
 
-	// 4) Печатаме началото на цикъла в сериен порт - за помощ при логване/дебъг.
-	//    Забавянето `delay(1000)` прави цикъла видим при тестове; при живо приложение
-	//    може да се намали/премахне за по-бърза реакция.
+	//----------------------------------------
 	Serial.println("++++++++++LOOP++++++++++");
 	delay(1000);
-
-	// 5) Четем сензорите и актуализираме часовника.
-	// Тези стойности са входните данни за решението по-надолу.
+	//----------------------------------------
+	// четене температури и извикване на меню на дисплея
 	Serial.println("tempRead-loop1");
 	tempRead();
+	// Часовник
 	clockTime();
-	Menu_screen();
-
-	// 6) Преди да решим кой режим да използваме, проверяваме защитите.
-	// Ако има опасност, защитата има по-висок приоритет от нормалната работа.
+	// На екран
+	Menu_screen(); // работен екран
+	// Проверка на системата
 	Serial.println("Dat_potok-loop1");
-	runProtectionChecks();
+	Dat_potok_error();
 	Serial.println("Dat_potok-loop2");
+	// HP високо налягане
+	HP_ERROR_LCD();
+	// LP ниско налягане
+	LP_ERROR_LCD();
+	// Фази и моторна защита
+	MotorZ_RST();
+	// вън е топло
+	High_outdour_temp_stop();
+	// вън е хладно
+	LOW_outdoor_temp_stop();
+	// защити компр
+	High_temp_komp();
+	// Висока температура топлообменник HVAC
+	T2_HIGH_temp();
+	// Ниска температура  топлообменник HVAC
+	T2_LOW_temp();
+	// T4 bgv out
+	T4bgv_HIGH_temp();
+	// WIFI - start - stop
+	WIFI_Stop();
+	// CHAKA_300();
+	//------------------------------------
+	//  BGV
+	// int Trab = EEPROM.read(addr0);
+	int flagBGV = EEPROM.read(addr105);
+	int Tbgv = EEPROM.read(addr5);
 
-	// 7) След защитите решаваме кой режим трябва да бъде активен.
-	// Това е централната логика на управляващия код.
-	static ControlMode currentMode = CONTROL_MODE_IDLE; // Запомняме последния активен режим.
-	ControlMode requestedMode = selectControlMode();	// Изчисляваме ново желание за режим.
-
-	// 8) Ако режимът е сменен, първо спираме всички изходи.
-	// По този начин старият режим не остава да работи паралелно с новия.
-	if (requestedMode != currentMode)
+	if (flagBGV == 1 && *tt3_BGV_IN < Tbgv - DT)
 	{
-		Serial.print("Mode transition: ");		 // Печатаме предишния режим.
-		Serial.print(modeName(currentMode));	 // Печатаме текущия режим.
-		Serial.print(" -> ");					 // Показваме стрелка към новия режим.
-		Serial.println(modeName(requestedMode)); // Печатаме новия режим.
-		STOP_ALL;								 // Спираме всички релета, за да няма конфликт.
-		currentMode = requestedMode;			 // Запомняме новия режим като активен.
+		Serial.println("++++++++++++++++++");
+		Serial.println("BGV");
+		Dat_potok_error();
+		BGV H20;
+		H20.Start_BGV();
+	}
+	else
+	{
+		Serial.println("++++++++++++++++++");
+		Serial.println("flagBGV = " + String(flagBGV));
 	}
 
-	// 9) След като знаем кой режим е правилният, изпълняваме съответния контролер.
-	runControlMode(requestedMode);
+	//------------------------------------
+
+	// HEAT
+	int flagHEAT = EEPROM.read(addr103);
+	int T_C = EEPROM.read(addr4);
+	// условие за запуск
+	if (flagHEAT == 1 && T_C == 1)
+	{
+		Serial.println("===========");
+		Serial.println("HEAT");
+		Dat_potok_error();
+		Heat toplo;
+		// if (*tt3_BGV_IN > Tbgv - DT)
+		toplo.Start_Heat();
+	}
+	else
+	{
+		Serial.println("++++++++++++++++++++++++++");
+		Serial.println("flagHEAT = " + String(flagHEAT));
+	}
+
+	//-----------------------------------
+	// Cool
+	int flagCOOL = EEPROM.read(addr104);
+
+	if (flagCOOL == 1 && T_C == 0)
+	{
+		Serial.println("===========");
+		Serial.println("COOL");
+		Dat_potok_error();
+		Cool stud;
+		stud.Start_Cool();
+	}
+	else
+	{
+		Serial.println("++++++++++++++++++++");
+		Serial.println("flagCOOL = " + String(flagCOOL));
+	}
 
 	//-----------------------------------
 	// Serial.println("tempRead-loop2");

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <Arduino.h>
 #include "FUNK.h"
-#include "main.h"
+#include "Config.h"
 #include "Nastroiki.h"
 
 void Menu_screen();        //нормално меню

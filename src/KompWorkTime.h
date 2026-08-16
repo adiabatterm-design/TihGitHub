@@ -3,6 +3,10 @@
 
 #include <Arduino.h> // Основни типове и функции за Arduino
 #include <EEPROM.h>  // За работа с EEPROM памет
+#include "Config.h"  // За достъп до глобални променливи и дефиниции
+#include "FUNK.h"  // За достъп до функции за управление на помпи и клапани
+#include "Nastroiki.h" // За достъп до функции за настройки
+
 //------------------------------------------------
 extern int addr106; // EEPROM адрес за секунди
 extern int addr107; // EEPROM адрес за часове
@@ -21,14 +25,11 @@ private:
     unsigned long totalHours;   // Натрупани часове работа (в RAM)
 
     uint8_t lastState;                   // Последното състояние на компресора (HIGH/LOW)
-    unsigned long compressorStartMillis; // Време на последното включване (millis)
+    unsigned long compressorStartMillis; // Време от включване (millis)
 
 public:
     // Конструктор — задава пина и EEPROM адресите
     KompWork(uint8_t kompPin, int addrSeconds, int addrHours);
-
-    // Инициализация — задава пинове и зарежда стойности от EEPROM
-    void KWTsetup();
 
     // Основен цикъл — следи компресора и записва времето
     void KWTloop();

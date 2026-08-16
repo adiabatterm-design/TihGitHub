@@ -1,8 +1,8 @@
 #pragma once
 #include <Arduino.h>
-#include "main.h"
+#include "Config.h"
 #include "FUNK.h"
-#include "main.h"
+#include "Config.h"
 #include "NTC.h"
 #include "Nastroiki.h"
 #include "FUNK.h"

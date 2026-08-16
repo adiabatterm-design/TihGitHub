@@ -1,54 +1,14 @@
 #include "FUNK.h"
-#
-// FUNK.ino - защитни функции и общи помощни рутини
-//
-// Този файл съдържа основни защитни и помощни функции за системата:
-// - runProtectionChecks(): централизиран контрол на всички защити
-// - tempRead(): четене и валидация на NTC датчици
-// - различни защитни процедури (HP/LP, T2/T4/T5 високи/ниски температури)
-// - стоп/аларми и помощни дисплейни функции
-//
-// Забележка: логиката е чувствителна към хардуерните пинове и глобалните променливи
-// (декларирани в `main.h` / `main_vars.cpp`). Не променяйте пинове без синхронизация.
-#include "main.h"
+#include "Config.h"
 #include "NTC.h"
 #include "Nastroiki.h"
-// #include "work.h"
-
-extern int Komp;
-extern int addr106;
-extern int addr107;
-//-------------------------------------------------------------------------
-// Главен контролен блок за защитите.
-// Всички защитни проверки са обединени тук, за да основният loop не
-// трябва да разпрасква логиката между много отделни извиквания.
-//-------------------------------------------------------------------------
-void runProtectionChecks()
-{
-	// Тази функция е центърът за всички защитни проверки.
-	// Ако някоя защита открие опасност, системата трябва да спре или да се предпази.
-	// Правим това тук, за да не разсейваме логиката в различни части на кода.
-	Serial.println("runProtectionChecks - START");
-	Dat_potok_error(); // Проверяваме дали има поток в системата.
-	HP_ERROR_LCD();	   // Проверяваме дали налягането е твърде високо.
-	LP_ERROR_LCD();	   // Проверяваме дали налягането е твърде ниско.
-	MotorZ_RST();	   // Проверяваме дали е активирана моторната защита.
-	High_temp_komp();  // Проверяваме дали компресорът е прегрял.
-	T2_HIGH_temp();	   // Проверяваме дали температурата T2 е твърде висока.
-	T2_LOW_temp();	   // Проверяваме дали температурата T2 е твърде ниска.
-	// T4bgv_HIGH_temp();   // Проверяваме дали BGV/топлообменникът е прегрял.
-	// WIFI_Stop();         // Проверяваме дали е активиран WiFi/термостат стоп.
-	Serial.println("runProtectionChecks - END");
-}
 
 //--tempRead------------------------------------------
 void tempRead()
 {
-	// Тази функция чете всички температурни сензори и запазва стойностите в общите променливи.
-	// Ако някой сензор е повреден или върне извън допустимите стойности, се маркира като грешка.
 	int tt_error = 0;
 	//  t1 вход топлообменника - кондензатор
-	float ttt1 = (float)NTC(A0); // Четем температурата от аналоговия вход A0.
+	float ttt1 = (float)NTC(A0);
 	if (ttt1 < 2 || ttt1 > 80)
 	{
 		*tt1 = 111;
@@ -305,11 +265,10 @@ void El2_NAGREV_KOMP()
 // Предпазване от висока температура на изход компресор
 void High_temp_komp()
 {
-	// Тази защита спира системата, ако компресорът стане прекалено горещ.
 	Serial.println("High_temp_komp - READ");
 	uint8_t MySREG = SREG;
 	wdt_reset();
-	if (*tt9_KOMP_OUT > 92) // Ако температурата на компресора е над 92°C, спираме работа.
+	if (*tt9_KOMP_OUT > 92)
 	{
 		Start_komp = millis();
 		Komp_OFF;
@@ -367,8 +326,6 @@ void High_temp_komp()
 // Защита датчик поток - става за H2O i AIR
 void Dat_potok_error()
 {
-	// Тази функция следи датчика за поток.
-	// Ако водата не тече или датчикът е в грешно състояние, системата спира и алармира.
 	Serial.println("Dat_potok_error - READ");
 
 	// @@@ При спряла помпа сонда и блокирал DP при старт
@@ -398,15 +355,14 @@ void Dat_potok_error()
 			lcd.print("ERROR");
 			//------------------------------------
 			wdt_reset();
-			delay(1000);
+			delay(2000);
 			dp = digitalRead(datPotok);
 			Serial.print("DP = ");
 			Serial.println(dp);
-			delay(1000);
+			delay(3000);
 			lcd.clear();
 
-			unsigned long errorStart = millis();
-			while (millis() - errorStart < 10000)
+			while (1)
 			{
 				wdt_reset();
 				delay(1000);
@@ -424,8 +380,8 @@ void Dat_potok_error()
 					lcd.setCursor(13, 2);
 					lcd.print(" ");
 				}
-				// lcd_NISHAN();
 				ALARM_ZUMER();
+				delay(1000);
 			}
 		} while (dp == 1); // ако падне на 0 endl ???
 	}
@@ -488,14 +444,13 @@ void Dat_potok_error()
 				Serial.print("DP off ERROR = ");
 				Serial.println(dp);
 				ALARM_ZUMER();
-				delay(1000);
 			}
 
 		} while (ii == 0);
 	}
 	else
 	{
-		Serial.println("DP Sonda-HIGH - datPotok - LOW - OK");
+		Serial.println("DP Sonda-HIGH - datPotok - HIGH");
 	}
 
 	Serial.println("Dat_potok_error - end READ");
@@ -505,8 +460,6 @@ void Dat_potok_error()
 // защита високо налягане
 void HP_ERROR_LCD()
 {
-	// Защита за високо налягане.
-	// Ако сензорът за високо налягане алармира, системата трябва да спре веднага.
 	Serial.println("HP_ERROR_LCD - READ");
 	Serial.print("flagHigh = ");
 	Serial.println(flagHigh);
@@ -545,17 +498,11 @@ void HP_ERROR_LCD()
 			{
 				wdt_reset();
 				STOP_ALL;
-				ALARM_ZUMER();
 				Serial.print("Reset = ");
 				Serial.println(80 - rr * 8);
 				delay(7900);
 			}
-			int hp = EEPROM.read(addr111);
-			hp++;
-			EEPROM.update(addr111, hp); //@@@
-			Serial.print("HP_ERROR_addr111 = " +String(hp));
-			// reset system
-			delay(1000);
+
 			asm volatile(
 				"cli \n\t"
 				"jmp 0x0000 \n\t");
@@ -572,8 +519,6 @@ void HP_ERROR_LCD()
 // Защита ниско налягане
 void LP_ERROR_LCD()
 {
-	// Защита за ниско налягане.
-	// Ако налягането падне под допустимото, компресорът се спира.
 	Serial.println("LP_ERROR_LCD - READ");
 	Serial.print("flagLow = ");
 	Serial.println(flagLow);
@@ -635,8 +580,6 @@ void LP_ERROR_LCD()
 // Защита от висока температура на t2 - изход от кондензатор отопление
 void T2_HIGH_temp()
 {
-	// Защита за прекалено висока температура на T2.
-	// Ако температурната стойност е над допустимото, системата се спира и алармира.
 	Serial.println("T2_HIGH_temp - READ");
 	uint8_t MySreg = SREG;
 	RESET_timer = millis();
@@ -773,8 +716,6 @@ void T4bgv_HIGH_temp()
 // Защита от низка температура на t2 -изход от кондензатор охлаждане
 void T2_LOW_temp()
 {
-	// Защита за прекалено ниска температура на T2.
-	// Ако температурата падне под долната граница, системата се спира.
 	Serial.println("T2_LOW_temp - READ");
 	uint8_t MySreg = SREG;
 
@@ -828,8 +769,6 @@ void T2_LOW_temp()
 // Защита от низка температура на t5led - изход сонда
 void T5_LED_temp()
 {
-	// Защита за температура на сондажната вода (T5).
-	// Ако температурата е под зададената стойност, системата реагира с аларма и спиране.
 	Serial.println("T5_LED_temp - READ");
 	uint8_t MySreg = SREG;
 
@@ -1262,75 +1201,12 @@ void WIFI_Stop()
 	}
 	Serial.println("WIFI_Stop - end READ");
 } // end WIFI
-
 //---------------------------------------------------
-void EEPROM_READ1(int *Trab, int *Tmax, int *Tmin,
-				  int *Tbgv, int *Tled, int *DT, int *T_C, int *ZK)
-{
-	Serial.println("EEPROM_READ");
-
-	// Trab = AutoTrabToutSeting();
-	// Serial.print("Trab = ");
-	// Serial.println(*Trab);
-	//------------------------------
-	*Trab = EEPROM.read(addr0);
-	// Serial.print("Trab = ");
-	// Serial.println(*Trab);
-	//------------------------------
-	*Tmax = EEPROM.read(addr1);
-	// Serial.print("Tmax = ");
-	// Serial.println(*Tmax);
-	//------------------------------
-	*Tmin = EEPROM.read(addr2);
-	// Serial.print("Tmin = ");
-	// Serial.println(*Tmin);
-	//------------------------------
-	*DT = EEPROM.read(addr3);
-	Serial.print("DT = ");
-	Serial.println(*DT);
-	//------------------------------
-	*T_C = EEPROM.read(addr4);
-	Serial.print("T_C = ");
-	Serial.println(*T_C);
-	//------------------------------
-	*Tbgv = EEPROM.read(addr5);
-	Serial.print("Tbgv = ");
-	Serial.println(*Tbgv);
-	//------------------------------
-	*Tled = EEPROM.read(addr102);
-	Serial.print("Tled = ");
-	Serial.println(*Tled);
-
-	// AutoTrab
-	AutoTrab = EEPROM.read(addr9);
-	if (AutoTrab == 1)
-	{
-		Tout_ZIMA = EEPROM.read(addr8);
-		// Serial.print("Tout_ZIMA = ");
-		// Serial.println(Tout_ZIMA);
-		Tout_LETO = EEPROM.read(addr81);
-		// Serial.print("Tout _LETO = ");
-		// Serial.println(Tout_LETO);
-
-		ATrab_korect = EEPROM.read(addr10); //@@@@
-											// Serial.print("TATrab_korect = ");
-											// Serial.println(ATrab_korect);
-	}
-	*ZK = EEPROM.read(addr101);
-	Serial.print("ZK = ");
-	Serial.println(*ZK);
-	//--------------------------------------
-	Serial.println("EEPROM1_READ_END");
-
-} // end EEROM1_READ
-
-//---------------------------------------------------
+//Четене на настойките от EEPROM
 void EEPROM_READ()
 {
-	// Тази функция чете настройките от EEPROM и ги подава в глобалните променливи.
-	// По този начин целият код работи с еднакви и актуални стойности.
 	Serial.println("EEPROM_READ");
-
+	int T_C = EEPROM.read(addr4);
 	int ATrab = EEPROM.read(addr9);
 	if (ATrab == 1)
 	{ // Avto
@@ -1339,17 +1215,21 @@ void EEPROM_READ()
 		// Serial.println(Trab);
 	}
 	//------------------------------
-	else if (T_C == 1)
+	else if (ATrab == 0)
 	{
-		Trab = EEPROM.read(addr0);
-		// Serial.print("Trab = ");
-		// Serial.println(Trab);
-	}
-	else if (T_C == 0)
-	{
-		Trab = EEPROM.read(addr01);
-		// Serial.print("Trab = ");
-		// Serial.println(Trab);
+
+		if (T_C == 1)
+		{
+			Trab = EEPROM.read(addr0);
+			// Serial.print("Trab = ");
+			// Serial.println(Trab);
+		}
+		else if (T_C == 0)
+		{
+			Trab = EEPROM.read(addr01);
+			// Serial.print("Trab = ");
+			// Serial.println(Trab);
+		}
 	}
 	//------------------------------
 	Tmax = EEPROM.read(addr1);
@@ -1382,16 +1262,13 @@ void EEPROM_READ()
 	// Serial.print("Tout _LETO = ");
 	// Serial.println(Tout_LETO);
 
-	ATrab_korect = EEPROM.read(addr10); //@@@@
+	// ATrab_korect = EEPROM.read(addr10); //@@@@
 	// Serial.print("ATrab_korect = ");
 	// Serial.println(ATrab_korect);
 
 	CHAKA = EEPROM.read(addr101);
 	// Serial.print("CHAKA = ");
 	// Serial.println(CKAKA);
-	// KompWorkTime
-	KompWork kkk(komp, addr106, addr107);
-	kkk.KWTloop();
 	//--------------------------------------
 	Serial.println("EEPROM_READ_END");
 }
@@ -1467,8 +1344,11 @@ void CHAKA_300()
 
 //-------------------------------------
 void lcd_NISHAN()
-
 {
+	// Старт на Компресор таймер
+	KompWork KWTime2(32, addr106, addr107);
+	KWTime2.KWTloop();
+	//------------------------
 	delay(100);
 	// Komp
 	if (digitalRead(Komp) == HIGH)
@@ -1579,7 +1459,7 @@ void ERROR_LCD()
 	Serial.println("ERROR_LCD-READ");
 	if (digitalRead(pinDoly) == LOW)
 	{
-		StartLP = millis();
+		unsigned long StartER = millis();
 		lcd.clear();
 		int ii = 1;
 		while (ii)
@@ -1628,7 +1508,7 @@ void ERROR_LCD()
 				lcd.print("No ERROR_DP");
 			}
 			HP_ERROR_LCD();
-			if ((millis() - StartLP) / 1000 > 5)
+			if ((millis() - StartER) / 1000 > 5)
 			{
 				ii = 0;
 				lcd.clear();

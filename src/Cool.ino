@@ -1,19 +1,26 @@
-// Cool.ino
-// Логика за режима "Охлаждане". Управлява компресора и помпите
-// когато системата трябва да намали температурата (режим 'студено').
 #include "Cool.h"
 
-Cool::Cool() : ModeController(" C ")
+Cool::Cool()
 {
     //--------------------------------
-    // При създаване на обекта за охлаждане зареждаме началните настройки.
-    loadSettings(); // Четем стойностите от EEPROM.
-    cool_Chaka = millis(); // Започваме таймер за този режим.
-    _4valve_Chaka = millis(); // Започваме и таймер за 4-ходовия клапан.
-    Serial.print("constructor Class_Cool_Trab = "); // Печатаме в сериен порт, че е създаден обект за охлаждане.
-    Serial.println(Trab); // Показваме текущата стойност на Trab.
-    prepareModeEntry(); // Подготвяме LCD и настройките за работа.
-    EEPROM_READ(); // Прочитаме настройките още веднъж, за да сме сигурни в актуалността им.
+    Trab =  AutoTrabToutSeting();
+    T_C = EEPROM.read(addr4);
+    Tbgv = EEPROM.read(addr5);
+    Tmax = EEPROM.read(addr1); // Tmax
+    Tmin = EEPROM.read(addr2); // Tmin
+    DT = EEPROM.read(addr3);   // Delta_T
+    Tled = EEPROM.read(addr102);
+    CHAKA = EEPROM.read(addr101);
+    cool_Chaka = millis();
+    _4valve_Chaka = millis();
+
+    Serial.print("constructor Class_Cool = ");
+    STOP_ALL;
+    Serial.print("TrabLeto = ");
+    Serial.println(Trab);
+    lcd.setCursor(15, 2);
+    lcd.print(" C ");
+
 }
 
 //-----------------------
@@ -32,21 +39,18 @@ Cool::~Cool()
 // Помпа сонда се включва при зор ??? @@@
 void Cool::Start_Cool()
 {
-    uint8_t MySREG = SREG; // Запазваме състоянието на прерыванията.
-    prepareModeEntry(); // Подготвяме режима за работа.
-    // Влизаме в режим охлаждане. Целта е да се поддържа зададената температура
-    // чрез управление на компресора и помпите в студен режим.
-    tempRead(); // Четем температурите в началото на режима.
+    uint8_t MySREG = SREG;
+    // Четене на температури и защити
+    tempRead();
     Menu_screen();
     clockTime();
     EEPROM_READ();
     ZashtitaCool();
     Dat_potok_error();
     ERROR_LCD();
-    
-    int Trab = AutoTrabToutSeting();
+    // int Trab = EEPROM.read(addr0);
     int Tbgv = EEPROM.read(addr5);
-    
+    int Trab = EEPROM.read(addr01);
     Serial.print("Trab = ");
     Serial.println(Trab);
     Serial.print("Tbgv = ");
@@ -62,7 +66,7 @@ void Cool::Start_Cool()
     _4valve_OFF;
     lcd_NISHAN();
     CHAKA_300();
-    uint8_t cc = 1; // Флаг за продължаване на цикъла на охлаждане.
+    uint8_t cc = 1;
     //-----------------------------
     while (cc)
     {
@@ -109,20 +113,20 @@ void Cool::Start_Cool()
         Read_Nastrroiki();
         lcdMenu_temp5_nastroi();
         //-------------------------------------------------
-        // В охлаждащия режим компресорът се включва, когато входната температура
-        // е по-висока от зададената горна граница. При достигане на долна граница
-        // компресорът се спира.
+        // Старт стоп комп сонда
         if (*tt1 > Trab + DT)
         {
             StartKompSonda();
             // Komp_ON;
+            lcd_NISHAN();
         }
         else if (*tt1 <= Trab)
         {
             // Komp_OFF; /
             StopKompSonda();
+            lcd_NISHAN();
         }
-        lcd_NISHAN();
+
         // if (*tt5_SONDA_OUT > 50)
         //{
         //     PUMP_SONDA_ON;
@@ -131,6 +135,8 @@ void Cool::Start_Cool()
         //{
         //     PUMP_SONDA_OFF;
         // }
+
+        lcd_NISHAN();
 
         // Проверка датчик поток прес 20 секунди
         // if ((millis() - cool_Chaka) / 1000 > 10)
@@ -151,16 +157,6 @@ void Cool::Start_Cool()
     lcd.print("   ");
 
     SREG = MySREG;
-}
-
-void Cool::runProtection()
-{
-    ZashtitaCool();
-}
-
-void Cool::applyModeSpecificRelayState()
-{
-    applyCommonRelayState(true, true, false);
 }
 
 //-----------------------------------
@@ -200,7 +196,6 @@ void Cool::StartKompSonda()
                 else
                 {
                     lcd_NISHAN();
-                    Menu_screen();
                     ss = 1;
                 }
             }
@@ -259,7 +254,7 @@ void Cool::StopKompSonda()
             if ((millis() - cool_Chaka) / 1000 > 15)
             {
                 PUMP_SONDA_OFF;
-                delay(100);
+                delay(900);
                 if (digitalRead(datPotok) == HIGH)
                 {
                     ss = 0;
@@ -283,7 +278,7 @@ void Cool::StopKompSonda()
             }
 
         } while (ss == 1);
-
+        delay(1000);  ///5 sec ?
         Dat_potok_error();
 
         Komp_OFF;

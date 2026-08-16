@@ -1,11 +1,11 @@
 // main_vars.cpp
-// Дефинира единствено всички глобални променливи и обекти, декларирани като extern в main.h
-// Тази единствена дефиниция предотвратява multiple-definition linker грешки когато main.h
+// Дефинира единствено всички глобални променливи и обекти, декларирани като extern в Config.h
+// Тази единствена дефиниция предотвратява multiple-definition linker грешки когато Config.h
 // се включва от много файлове.
 
 #include <Arduino.h>
 #include <EEPROM.h>
-#include "main.h"
+#include "Config.h"
 
 // Обекти
 DS1307 clock; // реален обект за RTC

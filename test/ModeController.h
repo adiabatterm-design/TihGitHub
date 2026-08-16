@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "main.h"
+#include "Config.h"
 #include "EEPROM.h"
 #include "FUNK.h"
 #include "Nastroiki.h"

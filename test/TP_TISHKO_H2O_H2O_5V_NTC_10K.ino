@@ -7,7 +7,7 @@
 //   на съответния режим чрез диспечерската функция `runControlMode()`.
 //
 // Внимание: повечето глобални променливи и обекти (LCD, RTC, пинове и т.н.)
-// са декларирани като `extern` в `main.h` и дефинирани в `src/main_vars.cpp`.
+// са декларирани като `extern` в `Config.h` и дефинирани в `src/main_vars.cpp`.
 /*
 	TP_TISHKO\src
 
@@ -36,7 +36,7 @@
 #include <math.h>
 //----------------
 #include "FUNK.h"
-#include "main.h"
+#include "Config.h"
 #include "Menu_screen.h"
 #include "NTC.h"
 #include "Clock_nastroi.h"

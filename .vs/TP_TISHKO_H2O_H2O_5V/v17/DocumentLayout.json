@@ -3,8 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\tih\\OneDrive\\Documents\\Arduino\\TP_TISHKO\\TP_TISHKO_H2O_H2O_5V\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{00E6906E-6176-4137-9ADA-5655CC5623B6}|TP_TISHKO_H2O_H2O_5V.vcxproj|C:\\Users\\tih\\OneDrive\\Documents\\Arduino\\TP_TISHKO\\TP_TISHKO_H2O_H2O_5V\\main.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{00E6906E-6176-4137-9ADA-5655CC5623B6}|TP_TISHKO_H2O_H2O_5V.vcxproj|solutionrelative:main.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{00E6906E-6176-4137-9ADA-5655CC5623B6}|TP_TISHKO_H2O_H2O_5V.vcxproj|C:\\Users\\tih\\OneDrive\\Documents\\Arduino\\TP_TISHKO\\TP_TISHKO_H2O_H2O_5V\\Config.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{00E6906E-6176-4137-9ADA-5655CC5623B6}|TP_TISHKO_H2O_H2O_5V.vcxproj|solutionrelative:Config.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{00E6906E-6176-4137-9ADA-5655CC5623B6}|TP_TISHKO_H2O_H2O_5V.vcxproj|C:\\Users\\tih\\OneDrive\\Documents\\Arduino\\TP_TISHKO\\TP_TISHKO_H2O_H2O_5V\\Menu_screen.ino||{8B382828-6202-11D1-8870-0000F87579D2}",
@@ -166,11 +166,11 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "main.h",
-              "DocumentMoniker": "C:\\Users\\tih\\OneDrive\\Documents\\Arduino\\TP_TISHKO\\TP_TISHKO_H2O_H2O_5V\\main.h",
-              "RelativeDocumentMoniker": "main.h",
-              "ToolTip": "C:\\Users\\tih\\OneDrive\\Documents\\Arduino\\TP_TISHKO\\TP_TISHKO_H2O_H2O_5V\\main.h",
-              "RelativeToolTip": "main.h",
+              "Title": "Config.h",
+              "DocumentMoniker": "C:\\Users\\tih\\OneDrive\\Documents\\Arduino\\TP_TISHKO\\TP_TISHKO_H2O_H2O_5V\\Config.h",
+              "RelativeDocumentMoniker": "Config.h",
+              "ToolTip": "C:\\Users\\tih\\OneDrive\\Documents\\Arduino\\TP_TISHKO\\TP_TISHKO_H2O_H2O_5V\\Config.h",
+              "RelativeToolTip": "Config.h",
               "ViewState": "AQIAAMkAAAAAAAAAAAAAAOIAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2024-08-27T08:03:03.285Z",

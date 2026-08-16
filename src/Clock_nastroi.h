@@ -3,13 +3,13 @@
 #include <DS1307.h>
 #include <SPI.h>
 #include <Wire.h>
-#include "main.h"
+#include "Config.h"
 
 
 //отчитане на отработени часове
 //boolean timeLastSave = LOW;
-//extern bool last_clock;
-//extern bool last_komp ;
+bool last_clock;
+bool last_komp ;
 
 //време забавяния
 

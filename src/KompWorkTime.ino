@@ -25,21 +25,11 @@ KompWork::KompWork(uint8_t kompPin, int addrSeconds, int addrHours)
     if (totalHours == 0xFFFFFFFF) totalHours = 0;
 }
 
-
-//--------------------------------------------------------------
-// Настройка на пиновете
-void KompWork::KWTsetup()
-{
-    kompPin = 32;
-    addrSeconds = addr106;
-    addrHours   = addr107;
-}
 // ------------------------------------------------------------
 // LOOP — следи компресора и записва времето
 // ------------------------------------------------------------
 void KompWork::KWTloop()
 {
-    //KWTsetup();
     uint8_t state = digitalRead(kompPin);  // Четем текущото състояние на компресора
 
     // --------------------------------------------------------
@@ -101,6 +91,7 @@ void KompWork::KWTloop()
 unsigned long KompWork::getHours()
 {
     Serial.println("KompTotalHourst = " + totalHours);
+    EEPROM.get(addrHours, totalHours); // Четем от EEPROM
     return totalHours;   // Връщаме часовете
 }
 

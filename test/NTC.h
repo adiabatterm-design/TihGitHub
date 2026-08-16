@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "main.h"
+#include "Config.h"
 
 extern float R2;    // значение резистора R2
 //int Tpin=A0;  // вывод к которму подключаен термистор

@@ -1,5 +1,5 @@
 #include "Nastroiki.h"
-#include "main.h"
+#include "Config.h"
 // Nastroiki.ino - меню и редакция на настройки
 //
 // Този файл съдържа логиката за менюто за настройки (настройки на температури,
