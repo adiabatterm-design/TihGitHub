@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CLOCK_NASTROI_H
+#define CLOCK_NASTROI_H
 #include <Arduino.h>
 #include <DS1307.h>
 #include <SPI.h>
@@ -31,8 +32,7 @@ void clock_year_nastro();   //
 
 
 
-
-
+#endif   // CLOCK_NASTROI_H
 
 
 

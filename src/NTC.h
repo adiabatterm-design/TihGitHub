@@ -1,4 +1,5 @@
-#pragma once
+#ifndef NTC_H
+#define NTC_H
 #include <Arduino.h>
 #include "Config.h"
 
@@ -20,6 +21,6 @@ float NTC(int Tpin);
 
 
 
-
+#endif  //NTC_H
 
 

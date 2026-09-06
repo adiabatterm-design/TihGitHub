@@ -1,4 +1,5 @@
 #include "Clock_nastroi.h"
+#include "Config.h"
 
 // чете време и изписва на екран - работно OK
 void clockTime()

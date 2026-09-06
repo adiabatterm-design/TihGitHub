@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COOL_H
+#define COOL_H
 #include <Arduino.h>
 #include "Config.h"
 #include "FUNK.h"
@@ -44,3 +45,8 @@ void StopKompSonda();
 void ZashtitaCool();
 
 };
+
+#endif  // COOL_H
+
+
+

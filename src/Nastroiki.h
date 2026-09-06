@@ -1,4 +1,5 @@
-#pragma once
+#ifndef NASTROIKI_H
+#define NASTROILI_H 
 #include <Arduino.h>
 #include "FUNK.h"
 #include "Config.h"
@@ -50,6 +51,9 @@ void BGV_ON_OFF();
 void El1_ON_OFF();
 void El2_ON_OFF();
 void MagVenKomp_ON_OFF();
+
+
+#endif  //NASTROIKI_H
 
 
 

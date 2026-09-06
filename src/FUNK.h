@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FUNK_H
+#define FUNK_H
 
 #include <Arduino.h>
 #include <avr/wdt.h>
@@ -37,10 +38,6 @@ void LP_ERROR_LCD();
 void RESET();                   //
 void High_outdour_temp_stop();  //@@@
 void LOW_outdoor_temp_stop();
-//void WIFI_Stop();
-//четене на настройки
-void EEPROM_READ1(int *Trab, int *Tmax, int *Tmin,\
-    int *Tbgv, int *Tled, int *DT, int *T_C, int *ZK);
 void EEPROM_READ();
 void MagVen_T4_kompIN();
 void ALARM_ZUMER();
@@ -48,4 +45,8 @@ void CHAKA_300();
 void lcd_NISHAN();
 //@@@-----------------
 void ERROR_LCD();
+
+
+
+#endif  //FUNK_H
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HEAT_H
+#define HEAT_H
 #include "Config.h"
 #include "FUNK.h"
 #include "Config.h"
@@ -46,3 +47,8 @@ void ZashtitaHeat();
 
 
 };
+
+
+
+#endif  //HEAT_H
+
