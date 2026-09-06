@@ -1,29 +1,34 @@
-// Heat.ino
-// Логика за режима "Отопление". Този файл представя класа `Heat` —
-// специфичната логика за отоплителен режим: управление на компресора,
-// помпите и защитите, за да се достигне и поддържа зададената температура.
 #include "Heat.h"
-// constructor Heat - inicializacia
-Heat::Heat() : ModeController(" T ")
+// constructor Heat - inicializazia
+Heat::Heat()
 {
-     //--------------------------------
-    // При създаване на обекта за отопление зареждаме началните настройки.
-    loadSettings(); // Четем данните от EEPROM.
-    heat_Chaka = millis(); // Започваме таймер за този режим.
-    _4valve_Chaka = millis(); // Започваме и таймер за 4-ходовия клапан.
 
-    Serial.print("constructor Class_Heat = "); // Печатаме в сериен порт, че е създаден обект за отопление.
-    Serial.println(Trab); // Показваме текущата стойност на Trab.
-    STOP_ALL; // Спираме всички релета в началото.
-    prepareModeEntry(); // Подготвяме LCD и настройките за работа.
+    //--------------------------------
+    Trab =  AutoTrabToutSeting();
+    T_C = EEPROM.read(addr4);
+    Tbgv = EEPROM.read(addr5);
+    Tmax = EEPROM.read(addr1); // Tmax
+    Tmin = EEPROM.read(addr2); // Tmin
+    DT = EEPROM.read(addr3);   // Delta_T
+    Tled = EEPROM.read(addr102);
+    CHAKA = EEPROM.read(addr101);
+    heat_Chaka = millis();
+    _4valve_Chaka = millis();
+
+    //Serial.print("constructor Class_Heat = ");
+    //Serial.print("TrabZima =");
+    //Serial.println(Trab);
+    STOP_ALL;
+    lcd.setCursor(15, 2);
+    lcd.print(" T ");
 }
 //-----------------------
 
 Heat::~Heat()
 {
-    Serial.println("destructor Class_Heat");
-    Serial.print("tt8_BUFFER = ");
-    Serial.println(*tt8_BUFFER);
+    //Serial.println("destructor Class_Heat");
+    //Serial.print("tt8_BUFFER = ");
+    //Serial.println(*tt8_BUFFER);
     STOP_ALL;
     // delay(1000);
 }
@@ -32,19 +37,17 @@ Heat::~Heat()
 // Старт отопление
 void Heat::Start_Heat()
 {
-    uint8_t MySREG = SREG; // Запазваме състоянието на прерыванията.
-    prepareModeEntry(); // Подготвяме режима за работа.
-    // Влизаме в режим отопление. Целта е да се поддържа целевата температура
-    // на входа чрез управление на компресора и необходимите помпи.
-    tempRead(); // Четем температурата от сензорите в началото на режима.
+    uint8_t MySREG = SREG;
+    // Четене на температури и защити
+    tempRead();
     Menu_screen();
     clockTime();
     EEPROM_READ();
     ZashtitaHeat();
     Dat_potok_error();
     int Trab = EEPROM.read(addr0);
-    Serial.print("Trab = ");
-    Serial.println(Trab);
+    //Serial.print("Trab = ");
+    //Serial.println(Trab);
     tempReadTime = millis();
     // PumpBGV_ON;
     // PumpBUFFER_ON;
@@ -54,9 +57,9 @@ void Heat::Start_Heat()
     _4valve_ON;
     lcd_NISHAN();
     CHAKA_300();
-    uint8_t ii = 1; // Флаг за продължаване на цикъла на отопление.
+    uint8_t ii = 1;
     //---------------------------------------
-    // Основен цикъл на отопление.
+    // Основен цикъл
     while (ii)
     {
         // кучето
@@ -77,8 +80,8 @@ void Heat::Start_Heat()
             EEPROM_READ();
             ZashtitaHeat();
             Trab = EEPROM.read(addr0);
-            Serial.print("Trab = ");
-            Serial.println(Trab);
+            //Serial.print("Trab = ");
+            //Serial.println(Trab);
             tempReadTime = millis();
         }
         //-------------------------------------------------
@@ -98,9 +101,7 @@ void Heat::Start_Heat()
         PumpBUFFER_ON;
         lcd_NISHAN();
 
-        // Старт/стоп на компресора се решава според температурата на входа.
-        // Ако е под зададената граница, стартираме компресора; ако е над нея,
-        // го спираме, за да не се прегрява системата.
+        // Старт стоп компресор сонда@@@
         if (*tt1 <= Trab - DT)
         {
             StartKompSonda();
@@ -109,8 +110,7 @@ void Heat::Start_Heat()
         {
             StopKompSonda();
         }
-        // Ако температурата на БГВ входа падне твърде ниско, спираме режима,
-        // за да не се работи с недостиг на топлинна среда.
+        // Спиране на топло при студен бойлер
         if (*tt3_BGV_IN < Tbgv - DT - 1)
         {
             ii = 0;
@@ -119,7 +119,7 @@ void Heat::Start_Heat()
 
         //---------------------------------------
         wdt_reset();
-        Serial.println("+++++Heat++++++");
+        //Serial.println("+++++Heat++++++");
     }
 
     lcd.setCursor(15, 2);
@@ -128,23 +128,13 @@ void Heat::Start_Heat()
     SREG = MySREG;
 } // end Start_HEAT
 
-void Heat::runProtection()
-{
-    ZashtitaHeat();
-}
-
-void Heat::applyModeSpecificRelayState()
-{
-    applyCommonRelayState(true, true, true);
-}
-
 //-----------------------------------
 void Heat::StartKompSonda()
 {
     uint8_t MySREG = SREG;
     EEPROM_READ();
-    Serial.println("------1----------");
-    Serial.println("StartKompSondaHEAT");
+    //Serial.println("------1----------");
+    //Serial.println("StartKompSondaHEAT");
 
     if (digitalRead(Komp) == LOW)
     {
@@ -162,8 +152,8 @@ void Heat::StartKompSonda()
         do
         { // чака
             delay(1000);
-            Serial.print("ChakaHeat_START = ");
-            Serial.println(15 - (millis() - heat_Chaka) / 1000);
+            //Serial.print("ChakaHeat_START = ");
+            //Serial.println(15 - (millis() - heat_Chaka) / 1000);
             // След 15 сек да провери дали е затворил DP
             if ((millis() - heat_Chaka) / 1000 > 15)
             {
@@ -177,12 +167,11 @@ void Heat::StartKompSonda()
                 else
                 {
                     lcd_NISHAN();
-                    Menu_screen();
                     ss = 1;
                 }
             }
-            // След 15 сек ако не е затворил DP - error
-            if ((millis() - heat_Chaka) / 1000 > 15)
+            // След 25 сек ако не е затворил DP - error
+            if ((millis() - heat_Chaka) / 1000 > 25)
             {
                 if (digitalRead(datPotok) == HIGH)
                 {
@@ -200,8 +189,8 @@ void Heat::StartKompSonda()
         // включваме комп
         Komp_ON;
         lcd_NISHAN();
-        Serial.println("StartKompSondaHeat - END");
-        Serial.println("----------1------------");
+        //Serial.println("StartKompSondaHeat - END");
+        //Serial.println("----------1------------");
     }
     SREG = MySREG;
 }
@@ -209,8 +198,8 @@ void Heat::StartKompSonda()
 void Heat::StopKompSonda()
 {
     uint8_t MySREG = SREG;
-    Serial.println("------1----------");
-    Serial.println("StopKompSonda");
+    //Serial.println("------1----------");
+    //Serial.println("StopKompSonda");
 
     if (digitalRead(Komp) == HIGH)
     {
@@ -228,8 +217,8 @@ void Heat::StopKompSonda()
         do
         { // чака
             delay(100);
-            Serial.print("ChakaHeat_STOP = ");
-            Serial.println(15 - (millis() - heat_Chaka) / 1000);
+            //Serial.print("ChakaHeat_STOP = ");
+            //Serial.println(15 - (millis() - heat_Chaka) / 1000);
             if ((millis() - heat_Chaka) / 1000 > 15)
             {
                 PUMP_SONDA_OFF;
@@ -263,8 +252,8 @@ void Heat::StopKompSonda()
         Komp_OFF;
         PUMP_SONDA_OFF;
         lcd_NISHAN();
-        Serial.println("StopKompSondaHeat - END");
-        Serial.println("----------11------------");
+        //Serial.println("StopKompSondaHeat - END");
+        //Serial.println("----------11------------");
     }
     SREG = MySREG;
 }
@@ -279,7 +268,7 @@ void Heat::ZashtitaHeat()
     // High_outdour_temp_stop();
     //}
     // High_outdour_temp_stop();
-    Serial.println("====ZashtitaHeat====");
+    //Serial.println("====ZashtitaHeat====");
     wdt_reset();
     MotorZ_RST();
     T5_LED_temp();
@@ -293,6 +282,6 @@ void Heat::ZashtitaHeat()
     lcd_NISHAN();
     ERROR_LCD();
     // RESET();
-    Serial.println("====ZashtitaHeat====end===");
+    //Serial.println("====ZashtitaHeat====end===");
     SREG = MySREG;
 }

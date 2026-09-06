@@ -3,7 +3,7 @@
 //-----------------------------------------
 void ALL_NASTROI()
 {
-	Serial.println("ALL_NASTROI - READ");
+	//Serial.println("ALL_NASTROI - READ");
 	// извиква меню настройки
 	if (digitalRead(pinLevo) == LOW) // настройки setup
 	{
@@ -22,17 +22,18 @@ void ALL_NASTROI()
 		// wdt_reset();
 	}
 
-	Serial.println("ALL_NASTROI - end ALL_NASTROI");
+	//Serial.println("ALL_NASTROI - end ALL_NASTROI");
 }
 // меню настройки термператури 1
 void lcdMenu_temp1_nastroi()
 {
 	if (digitalRead(pinLevo) == LOW)
 	{
-		Serial.println("lcdMenu_temp1_nastroi - READ");
+		//Serial.println("lcdMenu_temp1_nastroi - READ");
 		uint8_t MySREG = SREG;
 
-		Start_komp = millis();
+		unsigned long StopButtNasrt1 = millis();
+		unsigned long lastStopButtNasrt1 = millis();
 		int i = 1;
 		int j = 1;
 		int Yp = 0;
@@ -42,7 +43,7 @@ void lcdMenu_temp1_nastroi()
 		{
 			lcd.setCursor(2, 2);
 			lcd.print("Temp1 nastroiki");
-			Serial.println("Temp1 nastroiki");
+			//Serial.println("Temp1 nastroiki");
 			delay(50);
 		} while (digitalRead(pinLevo) == LOW);
 		lcd.clear();
@@ -51,6 +52,7 @@ void lcdMenu_temp1_nastroi()
 		do
 		{
 			wdt_reset();
+			HP_ERROR_LCD();
 			lcd.setCursor(2, 0);
 			lcd.print("Nastr Trab");
 			lcd.setCursor(2, 1);
@@ -68,6 +70,7 @@ void lcdMenu_temp1_nastroi()
 
 			if (digitalRead(pinDoly) == LOW)
 			{
+				StopButtNasrt1 = millis();
 				do
 				{
 					delay(50);
@@ -75,6 +78,10 @@ void lcdMenu_temp1_nastroi()
 						i = 0;
 					else
 						i = 1;
+
+					if (millis() - StopButtNasrt1 > 3000)
+						break;
+
 				} while (i == 0);
 				Yp++;
 				if (Yp > 3)
@@ -86,6 +93,7 @@ void lcdMenu_temp1_nastroi()
 			}
 			if (digitalRead(pinGore) == LOW)
 			{
+				StopButtNasrt1 = millis();
 				do // да се пусне бутона
 				{
 					delay(50);
@@ -93,6 +101,10 @@ void lcdMenu_temp1_nastroi()
 						i = 0;
 					else
 						i = 1;
+
+					if (millis() - StopButtNasrt1 > 3000)
+						break;
+
 				} while (i == 0);
 				Yp--;
 				if (Yp < 0)
@@ -107,42 +119,56 @@ void lcdMenu_temp1_nastroi()
 			// Избор подменю
 			if ((digitalRead(pinLevo) == LOW) && Yp == 0)
 			{
+				StopButtNasrt1 = millis();
 				do
 				{
-					delay(50);
+					delay(100);
+					if (millis() - StopButtNasrt1 > 3000)
+						break;
+
 				} while (digitalRead(pinLevo) == LOW);
-				Serial.println("Trab nastroi-----------"); //@@@
+				//Serial.println("Trab nastroi-----------"); //@@@
 				Trab_nastroi();
+				delay(100);
 			}
 			// Избор подменю
 			if ((digitalRead(pinLevo) == LOW) && Yp == 1)
 			{
+				StopButtNasrt1 = millis();
 				do
 				{
-					delay(50);
+					delay(100);
+					if (millis() - StopButtNasrt1 > 3000)
+						break;
 				} while (digitalRead(pinLevo) == LOW);
 				Tbgv_nastroi();
+				delay(100);
 			}
 			// Избор подменю
 			if ((digitalRead(pinLevo) == LOW) && Yp == 2)
 			{
+				StopButtNasrt1 = millis();
 				do
 				{
-					delay(50);
+					delay(100);
+					if (millis() - StopButtNasrt1 > 3000)
+						break;
 				} while (digitalRead(pinLevo) == LOW);
-				Delta_T_nastroi(); // led_Temp_nastroi(); //@@@@ -  да се замени с друго при въздух вода - например BGV
+				Delta_T_nastroi();
+				delay(100);
 			}
 			// Избор подменю
 			if ((digitalRead(pinLevo) == LOW) && Yp == 3)
 			{
+				StopButtNasrt1 = millis();
 				do
 				{
-					delay(50);
+					delay(100);
+					if (millis() - StopButtNasrt1 > 3000)
+						break;
 				} while (digitalRead(pinLevo) == LOW);
 				T_C_nastroi();
-				// AUTO_Trab_setup();
 				delay(100);
-				// AUTO_Trab_korect();
 			}
 			//-------------------------------end
 			// излизане от цикъла
@@ -151,191 +177,34 @@ void lcdMenu_temp1_nastroi()
 			else
 				j = 0;
 			// break;
-			if (millis() - Start_komp > 30000)
-				j = 1;
-			// break;// принудително излизане
 
-			Serial.print("desno = "); // излизане от цикъла
-			Serial.println(i);
+			if (millis() - lastStopButtNasrt1 > 30000)
+			{
+				j = 1;
+				break; // принудително излизане
+			}
+			//Serial.print("desno = "); // излизане от цикъла
+			//Serial.println(i);
 			delay(50);
 			//----------------------------
 
 		} while (j == 0);
 
-		delay(5);
+		delay(50);
 		lcd.clear();
-		Start_komp = millis();
 		SREG = MySREG;
 	}
 	//----------------------------------
 	// Пробно -  да се изстрие @@@
 }
 //--------------@@@------------------------
-void lcdMenu_temp2_nastroi()
-{
-	Serial.println("lcdMenu_temp2_nastroi - READ");
-	uint8_t MySREG = SREG;
-
-	Start_komp = millis();
-	int i = 1;
-	int j = 1;
-	int Yp = 0;
-	lcd.clear();
-
-	// чакаме да се пусне бутона
-	do
-	{
-		lcd.setCursor(2, 2);
-		lcd.print("Temp2 nastroiki");
-		Serial.println("Temp2 nastroiki");
-		delay(50);
-	} while (digitalRead(pinDesno) == LOW);
-	lcd.clear();
-
-	// Работен цикъл
-	do
-	{
-		wdt_reset();
-		lcd.setCursor(2, 0);
-		lcd.print("Tout_nastr");
-		lcd.setCursor(2, 1);
-		lcd.print("Tdef_end");
-		lcd.setCursor(2, 2);
-		lcd.print("Delta_T_def");
-		lcd.setCursor(2, 3);
-		// lcd.print("AUTO_Trab");
-		lcd.print("Nastr T_C");
-		//@@@@ vremezakasnenie komp
-
-		// местим курсор
-		lcd.setCursor(0, Yp);
-		lcd.print(">");
-		// lcd.write(62);
-
-		if (digitalRead(pinDoly) == LOW)
-		{
-			do
-			{
-				delay(50);
-				if (digitalRead(pinDoly) == LOW)
-					i = 0;
-				else
-					i = 1;
-			} while (i == 0);
-			Yp++;
-			if (Yp > 3)
-			{
-				Yp = 0;
-			}
-
-			lcd.setCursor(0, Yp - 1);
-			lcd.print(" ");
-			lcd.setCursor(0, Yp);
-			lcd.print(">");
-		}
-		if (digitalRead(pinGore) == LOW)
-		{
-			do // да се пусне бутона
-			{
-				delay(50);
-				if (digitalRead(pinGore) == LOW)
-					i = 0;
-				else
-					i = 1;
-			} while (i == 0);
-			Yp--;
-			if (Yp < 0)
-				Yp = 3;
-			lcd.setCursor(0, 0);
-			lcd.print(" ");
-			lcd.setCursor(0, Yp + 1);
-			lcd.print(" ");
-			lcd.setCursor(0, Yp);
-			lcd.print(">");
-		}
-		// Избор подменю
-		if ((digitalRead(pinLevo) == LOW) && Yp == 0)
-		{
-			do
-			{
-				delay(50);
-			} while (digitalRead(pinLevo) == LOW);
-			Start_komp = millis();
-			Tout_nastroi();
-		}
-		// Избор подменю
-		if ((digitalRead(pinLevo) == LOW) && Yp == 1)
-		{
-			do
-			{
-				delay(50);
-			} while (digitalRead(pinLevo) == LOW);
-			Start_komp = millis();
-			// Tdef_end_defros();
-		}
-		// Избор подменю
-		if ((digitalRead(pinLevo) == LOW) && Yp == 2)
-		{
-			do
-			{
-				delay(50);
-			} while (digitalRead(pinLevo) == LOW);
-			Start_komp = millis();
-			// Delta_T_defros();
-		}
-		// Избор подменю
-		if ((digitalRead(pinLevo) == LOW) && Yp == 3)
-		{
-			do
-			{
-				delay(50);
-			} while (digitalRead(pinLevo) == LOW);
-			Start_komp = millis();
-			T_C_nastroi();
-			delay(10);
-			// AUTO_Trab_setup();
-			// AUTO_Trab_korect();
-		}
-		//-------------------------------end
-		// излизане от цикъла
-		if (digitalRead(pinDesno) == LOW)
-		{
-			int ttt = 1;
-			do
-			{
-				if (digitalRead(pinDesno) == HIGH)
-					ttt = 0;
-				j = 1;
-				delay(50);
-			} while (ttt == 1);
-		}
-		else
-			j = 0;
-
-		// break -- принудително излизане;
-		if (millis() - Start_komp > 30000)
-			j = 1;
-
-		Serial.print("desno = "); // излизане от цикъла
-		Serial.println(i);
-		delay(50);
-		//----------------------------
-
-	} while (j == 0);
-
-	delay(50);
-	lcd.clear();
-	Start_komp = millis();
-	SREG = MySREG;
-}
-//--------------@@@------------------------
 void lcdMenu_temp3_nastroi()
 {
-	Serial.println("lcdMenu_temp3_nastroi - READ");
+	//Serial.println("lcdMenu_temp3_nastroi - READ");
 	uint8_t MySREG = SREG;
 
-	unsigned long Start_komp = millis();
-	unsigned long lastStart_komp = millis();
+	unsigned long StopButNastr3 = millis();
+	unsigned long lastStopButNastr3 = millis();
 
 	int i = 1;
 	int j = 1;
@@ -347,10 +216,10 @@ void lcdMenu_temp3_nastroi()
 	{
 		lcd.setCursor(2, 2);
 		lcd.print("Temp3 nastroiki");
-		Serial.println("Temp3 nastroiki");
+		//Serial.println("Temp3 nastroiki");
 		delay(50);
 
-		if (millis() - lastStart_komp > 3000)
+		if (millis() - StopButNastr3 > 3000)
 		{
 			break;
 		}
@@ -364,6 +233,7 @@ void lcdMenu_temp3_nastroi()
 	do
 	{
 		wdt_reset();
+		HP_ERROR_LCD();
 		lcd.setCursor(2, 0);
 		lcd.print("ZK_nastr"); // CHAKA_KOMP_nastroi();
 		lcd.setCursor(2, 1);
@@ -380,7 +250,7 @@ void lcdMenu_temp3_nastroi()
 
 		if (digitalRead(pinDoly) == LOW)
 		{
-			Start_komp = millis();
+			StopButNastr3 = millis();
 			do
 			{
 				delay(50);
@@ -388,7 +258,7 @@ void lcdMenu_temp3_nastroi()
 					i = 0;
 				else
 					i = 1;
-				if (millis() - Start_komp > 3000)
+				if (millis() - StopButNastr3 > 3000)
 				{
 					j = 1;
 					break;
@@ -407,7 +277,7 @@ void lcdMenu_temp3_nastroi()
 		}
 		if (digitalRead(pinGore) == LOW)
 		{
-			Start_komp = millis();
+			StopButNastr3 = millis();
 			do // да се пусне бутона
 			{
 				delay(50);
@@ -416,7 +286,7 @@ void lcdMenu_temp3_nastroi()
 				else
 					i = 1;
 
-				if (millis() - Start_komp > 3000)
+				if (millis() - StopButNastr3 > 3000)
 				{
 					j = 1;
 					break;
@@ -437,77 +307,77 @@ void lcdMenu_temp3_nastroi()
 		// Избор подменю
 		if ((digitalRead(pinLevo) == LOW) && Yp == 0)
 		{
-			Start_komp = millis();
+			StopButNastr3 = millis();
 			do
 			{
 				delay(50);
-				if (millis() - Start_komp > 3000)
+				if (millis() - StopButNastr3 > 3000)
 				{
 					break;
 				}
 			} while (digitalRead(pinLevo) == LOW);
 			// Настройки за време на забавяне старт на компресора
 			ZK_KOMP_nastroi();
+			delay(100);
 		}
 		// Избор подменю
 		if ((digitalRead(pinLevo) == LOW) && Yp == 1)
 		{
-			Start_komp = millis();
+			StopButNastr3 = millis();
 			do
 			{
 				delay(50);
-				if (millis() - Start_komp > 3000)
+				if (millis() - StopButNastr3 > 3000)
 				{
 					break;
 				}
 			} while (digitalRead(pinLevo) == LOW);
-			// HEAT Топло - вкл/изкл
 			HEAT_ON_OFF();
+			delay(100);
 		}
 		// Избор подменю
 		if ((digitalRead(pinLevo) == LOW) && Yp == 2)
 		{
-			Start_komp = millis();
+			StopButNastr3 = millis();
 			do
 			{
 				delay(50);
-				if (millis() - Start_komp > 3000)
+				if (millis() - StopButNastr3 > 3000)
 				{
 					break;
 				}
 			} while (digitalRead(pinLevo) == LOW);
-			// COOL Студено - вкл/изкл
 			COOL_ON_OFF();
+			delay(100);
 		}
 		// Избор подменю
 		if ((digitalRead(pinLevo) == LOW) && Yp == 3)
 		{
-			Start_komp = millis();
+			StopButNastr3 = millis();
 			do
 			{
 				delay(50);
-				if (millis() - Start_komp > 3000)
+				if (millis() - StopButNastr3 > 3000)
 				{
 					break;
 				}
 			} while (digitalRead(pinLevo) == LOW);
-			// BGV - вкл/изкл
 			BGV_ON_OFF();
-			delay(10);
+			delay(100);
 		}
 		//-------------------------------end
 		// излизане от цикъла
 		if (digitalRead(pinDesno) == LOW)
 		{
 			int ttt = 1;
-			Start_komp = millis();
+			StopButNastr3 = millis();
 			do
 			{
 				if (digitalRead(pinDesno) == HIGH)
 					ttt = 0;
 				j = 1;
 				delay(50);
-				if (millis() - Start_komp > 3000)
+				if (millis() - StopButNastr3 > 3000)
 				{
 					j = 1;
 					break;
@@ -518,188 +388,34 @@ void lcdMenu_temp3_nastroi()
 			j = 0;
 
 		// break -- принудително излизане;
-		if (millis() - lastStart_komp > 30000)
+		if (millis() - lastStopButNastr3 > 30000)
+		{
 			j = 1;
+			break;
+		}
 
-		Serial.print("desno = "); // излизане от цикъла
-		Serial.println(i);
-		delay(50);
+		//Serial.print("desno = "); // излизане от цикъла
+		//Serial.println(i);
+		delay(100);
 		//----------------------------
 
 	} while (j == 0);
 
 	delay(50);
 	lcd.clear();
-	Start_komp = millis();
 	SREG = MySREG;
 }
-//--------------@@@------------------------
-void lcdMenu_temp4_nastroi()
-{
-	Serial.println("lcdMenu_temp3_nastroi - READ");
-	uint8_t MySREG = SREG;
-
-	Start_komp = millis();
-	int i = 1;
-	int j = 1;
-	int Yp = 0;
-	lcd.clear();
-
-	// чакаме да се пусне бутона
-	do
-	{
-		lcd.setCursor(2, 2);
-		lcd.print("Temp4 nastroiki");
-		Serial.println("Temp4 nastroiki");
-		delay(50);
-	} while (digitalRead(pinDesno) == LOW);
-	lcd.clear();
-
-	// Работен цикъл
-	do
-	{
-		wdt_reset();
-		lcd.setCursor(2, 0);
-		lcd.print("El1_ON_OFF"); // вкл/изкл El1_нагрев комп и пита вън
-		lcd.setCursor(2, 1);
-		lcd.print("El2_ON_OFF"); // вкл/изкл El2 - buffer
-		lcd.setCursor(2, 2);
-		lcd.print("MagVenStep_ON_OFF"); // вкл/изкл MAG_VEN-впръскване
-		lcd.setCursor(2, 3);
-		lcd.print("StepTVRvalve_ON_OFF"); // вкл/изкл TRV-впръскване
-
-		// местим курсор
-		lcd.setCursor(0, Yp);
-		lcd.print(">");
-		// lcd.write(62);
-
-		if (digitalRead(pinDoly) == LOW)
-		{
-			do
-			{
-				delay(50);
-				if (digitalRead(pinDoly) == LOW)
-					i = 0;
-				else
-					i = 1;
-			} while (i == 0);
-			Yp++;
-			if (Yp > 3)
-			{
-				Yp = 0;
-			}
-
-			lcd.setCursor(0, Yp - 1);
-			lcd.print(" ");
-			lcd.setCursor(0, Yp);
-			lcd.print(">");
-		}
-		if (digitalRead(pinGore) == LOW)
-		{
-			do // да се пусне бутона
-			{
-				delay(50);
-				if (digitalRead(pinGore) == LOW)
-					i = 0;
-				else
-					i = 1;
-			} while (i == 0);
-			Yp--;
-			if (Yp < 0)
-				Yp = 3;
-			lcd.setCursor(0, 0);
-			lcd.print(" ");
-			lcd.setCursor(0, Yp + 1);
-			lcd.print(" ");
-			lcd.setCursor(0, Yp);
-			lcd.print(">");
-		}
-		// Избор подменю
-		if ((digitalRead(pinLevo) == LOW) && Yp == 0)
-		{
-			do
-			{
-				delay(50);
-			} while (digitalRead(pinLevo) == LOW);
-			Start_komp = millis();
-			Tout_nastroi();
-		}
-		// Избор подменю
-		if ((digitalRead(pinLevo) == LOW) && Yp == 1)
-		{
-			do
-			{
-				delay(50);
-			} while (digitalRead(pinLevo) == LOW);
-			Start_komp = millis();
-			// Tdef_end_defros();
-		}
-		// Избор подменю
-		if ((digitalRead(pinLevo) == LOW) && Yp == 2)
-		{
-			do
-			{
-				delay(50);
-			} while (digitalRead(pinLevo) == LOW);
-			Start_komp = millis();
-			// Delta_T_defros();
-		}
-		// Избор подменю
-		if ((digitalRead(pinLevo) == LOW) && Yp == 3)
-		{
-			do
-			{
-				delay(50);
-			} while (digitalRead(pinLevo) == LOW);
-			Start_komp = millis();
-			T_C_nastroi();
-			delay(10);
-			// AUTO_Trab_setup();
-			// AUTO_Trab_korect();
-		}
-		//-------------------------------end
-		// излизане от цикъла
-		if (digitalRead(pinDesno) == LOW)
-		{
-			int ttt = 1;
-			do
-			{
-				if (digitalRead(pinDesno) == HIGH)
-					ttt = 0;
-				j = 1;
-				delay(50);
-			} while (ttt == 1);
-		}
-		else
-			j = 0;
-
-		// break -- принудително излизане;
-		if (millis() - Start_komp > 30000)
-			j = 1;
-
-		Serial.print("desno = "); // излизане от цикъла
-		Serial.println(i);
-		delay(50);
-		//----------------------------
-
-	} while (j == 0);
-
-	delay(50);
-	lcd.clear();
-	Start_komp = millis();
-	SREG = MySREG;
-}
-//--------------@@@------------------------
 //--------------@@@------------------------
 void lcdMenu_temp5_nastroi()
 {
 	uint8_t MySREG = SREG;
-	Serial.println("lcdMenu_temp5_nastroi - READ");
+	//Serial.println("lcdMenu_temp5_nastroi - READ");
 	if (digitalRead(pinLevo) == LOW)
 	{
-		Serial.println("lcdMenu_temp5_nastroi - WORK");
+		//Serial.println("lcdMenu_temp5_nastroi - WORK");
 
 		unsigned long StopButton = millis();
+		unsigned long lastStopButton = millis();
 		int i = 1;
 		int j = 1;
 		int Yp = 0;
@@ -710,8 +426,8 @@ void lcdMenu_temp5_nastroi()
 		{
 			lcd.setCursor(2, 2);
 			lcd.print("Temp5 nastroiki");
-			Serial.println("Temp5 nastroiki");
-			delay(50);
+			//Serial.println("Temp5 nastroiki");
+			delay(100);
 			if (millis() - StopButton > 3000)
 				break;
 		} while (digitalRead(pinLevo) == LOW);
@@ -719,10 +435,11 @@ void lcdMenu_temp5_nastroi()
 
 		// Работен цикъл
 		StopButton = millis();
-		unsigned long lastStopButton = StopButton;
+
 		do
 		{
 			wdt_reset();
+			HP_ERROR_LCD();
 			lcd.setCursor(2, 0);
 			lcd.print("Nastr Trab");
 			lcd.setCursor(2, 1);
@@ -793,8 +510,8 @@ void lcdMenu_temp5_nastroi()
 					if (millis() - StopButton > 3000)
 						break;
 				} while (digitalRead(pinLevo) == LOW);
-				Start_komp = millis();
 				Trab_nastroi();
+				delay(100);
 			}
 			// Избор подменю
 			if ((digitalRead(pinLevo) == LOW) && Yp == 1)
@@ -806,8 +523,8 @@ void lcdMenu_temp5_nastroi()
 					if (millis() - StopButton > 3000)
 						break;
 				} while (digitalRead(pinLevo) == LOW);
-				Start_komp = millis();
 				Tbgv_nastroi();
+				delay(100);
 			}
 			// Избор подменю
 			if ((digitalRead(pinLevo) == LOW) && Yp == 2)
@@ -819,8 +536,8 @@ void lcdMenu_temp5_nastroi()
 					if (millis() - StopButton > 3000)
 						break;
 				} while (digitalRead(pinLevo) == LOW);
-				Start_komp = millis();
 				Delta_T_nastroi();
+				delay(100);
 			}
 			// Четене часовете работа на компресора
 			if ((digitalRead(pinLevo) == LOW) && Yp == 3)
@@ -834,18 +551,23 @@ void lcdMenu_temp5_nastroi()
 						break;
 					// четене на часовете работа на компресора
 					unsigned long KWTsec = EEPROM.read(addr106);
-					Serial.print("KWTsec = " + String(KWTsec));
-					delay(10);
-					unsigned long KWT = EEPROM.read(addr107);
-					Serial.print("KWT = " + String(KWT));
+					//Serial.println("KWTsec = " + String(KWTsec));
+					delay(100);
+					KompWork KWT(32, addr106, addr107);
+					unsigned long KWTime = KWT.getHours();
+					//Serial.println("KWT = " + String(KWTime));
 					delay(10);
 					// показване на часовете работа на компресора
 					lcd.setCursor(1, 1);
 					lcd.print(L"Време работа компр.");
 					lcd.setCursor(5, 2);
-					lcd.print(KWT);
+					lcd.print(KWTime);
+					lcd.print(" h");
+					lcd.setCursor(5, 3);
+					lcd.print(KWTsec);  //@@@
+					lcd.print(" s");   //@@@
 					HP_ERROR_LCD();
-					delay(50);
+					delay(1000);
 				} while (digitalRead(pinLevo) == LOW);
 				lcd.clear();
 			}
@@ -875,8 +597,8 @@ void lcdMenu_temp5_nastroi()
 				break;
 			}
 
-			Serial.print("desno = "); // излизане от цикъла
-			Serial.println(i);
+			//Serial.print("desno = "); // излизане от цикъла
+			//Serial.println(i);
 			delay(50);
 			//----------------------------
 
@@ -886,15 +608,14 @@ void lcdMenu_temp5_nastroi()
 		lcd.clear();
 	}
 	//-----------------------------------
-	Serial.println("lcdMenu_temp5_nastroi - END READ");
-	Start_komp = millis();
+	//Serial.println("lcdMenu_temp5_nastroi - END READ");
 	SREG = MySREG;
 }
 //--------------@@@------------------------
 // настройка на работни параметри
 void Trab_nastroi() // Trab
 {
-	Serial.println("Trab_nastroi - READ");
+	//Serial.println("Trab_nastroi - READ");
 	uint8_t MySREG = SREG;
 	unsigned long StopButton = millis();
 	unsigned long lastStopButton = millis();
@@ -932,8 +653,8 @@ void Trab_nastroi() // Trab
 		lcd.setCursor(0, 3);
 		lcd.print(" > exit     down-");
 
-		Serial.print("Trab = ");
-		Serial.println(Trab);
+		//Serial.print("Trab = ");
+		//Serial.println(Trab);
 
 		if (digitalRead(pinDoly) == LOW)
 		{
@@ -944,7 +665,7 @@ void Trab_nastroi() // Trab
 				delay(100);
 				if (digitalRead(pinDoly) == LOW) // HIGH)
 				{
-					Serial.println("Trab----" + String(Trab));
+					//Serial.println("Trab----" + String(Trab));
 					Trab--;
 					t = 1;
 				}
@@ -966,7 +687,7 @@ void Trab_nastroi() // Trab
 				if (digitalRead(pinGore) == LOW) // HIGH)
 				{
 					Trab++;
-					Serial.println("Trab++++" + String(Trab));
+					//Serial.println("Trab++++" + String(Trab));
 					t = 1;
 				}
 				if (Trab > Tmax)
@@ -1026,7 +747,7 @@ void Trab_nastroi() // Trab
 // Настройка Tbgv
 void Tbgv_nastroi()
 {
-	Serial.println("Tbgv_nastroi - READ");
+	//Serial.println("Tbgv_nastroi - READ");
 	uint8_t MySREG = SREG;
 	unsigned long StopButtBGV = millis();
 	unsigned long lastStopButBGV = millis();
@@ -1053,8 +774,8 @@ void Tbgv_nastroi()
 		lcd.setCursor(0, 3);
 		lcd.print(" > exit     down-");
 
-		Serial.print("Tbgv = ");
-		Serial.println(Tbgv);
+		//Serial.print("Tbgv = ");
+		//Serial.println(Tbgv);
 
 		if (digitalRead(pinDoly) == LOW)
 		{
@@ -1090,7 +811,7 @@ void Tbgv_nastroi()
 					t = 1;
 				}
 				if (Tbgv > Tmax - 2)
-					Tbgv = Tmax -2;
+					Tbgv = Tmax - 2;
 
 				if (millis() - StopButtBGV > 500) // 3000
 					break;
@@ -1142,7 +863,7 @@ void Tbgv_nastroi()
 // настройка на температурна разлика - делта Т
 void Delta_T_nastroi()
 {
-	Serial.println("Delta_T_nastroi - READ");
+	//Serial.println("Delta_T_nastroi - READ");
 	uint8_t MySREG = SREG;
 	lcd.clear();
 	bool i = LOW;
@@ -1167,8 +888,8 @@ void Delta_T_nastroi()
 		lcd.setCursor(0, 3);
 		lcd.print(" > exit     down-");
 
-		Serial.print("DT  = ");
-		Serial.println(DT);
+		//Serial.print("DT  = ");
+		//Serial.println(DT);
 
 		if (digitalRead(pinDoly) == LOW)
 		{
@@ -1247,7 +968,7 @@ void Delta_T_nastroi()
 // настройка топло студено
 void T_C_nastroi()
 {
-	Serial.println("T_C_nastroi - READ");
+	//Serial.println("T_C_nastroi - READ");
 	uint8_t MySREG = SREG;
 	lcd.clear();
 	bool i = LOW;
@@ -1271,8 +992,8 @@ void T_C_nastroi()
 		lcd.setCursor(0, 3);
 		lcd.print(" > exit     down-");
 
-		Serial.print("T_C  = ");
-		Serial.println(T_C);
+		//Serial.print("T_C  = ");
+		//Serial.println(T_C);
 
 		if (digitalRead(pinDoly) == LOW)
 		{
@@ -1351,7 +1072,7 @@ void T_C_nastroi()
 // Настройка Т външно
 void Tout_nastroi()
 {
-	Serial.println("Tout_nastroi - READ");
+	//Serial.println("Tout_nastroi - READ");
 	uint8_t MySREG = SREG;
 	lcd.clear();
 	bool i = LOW;
@@ -1381,8 +1102,8 @@ void Tout_nastroi()
 		lcd.setCursor(0, 3);
 		lcd.print(" > exit     down-");
 
-		Serial.print("Tout = ");
-		Serial.println(Tout);
+		//Serial.print("Tout = ");
+		//Serial.println(Tout);
 
 		if (digitalRead(pinDoly) == LOW)
 		{
@@ -1487,7 +1208,7 @@ void Tout_nastroi()
 // Tled - Само за термопомпи вода вода
 void led_Temp_nastroi()
 {
-	Serial.println("led_Temp_nastroi - READ");
+	//Serial.println("led_Temp_nastroi - READ");
 
 	uint8_t MySREG = SREG;
 	lcd.clear();
@@ -1514,8 +1235,8 @@ void led_Temp_nastroi()
 		lcd.setCursor(0, 3);
 		lcd.print(" > exit     down-");
 
-		Serial.print("Tled = ");
-		Serial.println(Tled);
+		//Serial.print("Tled = ");
+		//Serial.println(Tled);
 
 		if (digitalRead(pinDoly) == LOW)
 		{
@@ -1597,7 +1318,7 @@ void led_Temp_nastroi()
 // зарежда заводски настройки
 void zav_nastr()
 {
-	Serial.println("zav_nastr - READ");
+	//Serial.println("zav_nastr - READ");
 	wdt_reset();
 	uint8_t MySREG = SREG;
 	EEPROM.update(addr0, 40);  // Trab HEAT
@@ -1605,7 +1326,7 @@ void zav_nastr()
 	EEPROM.update(addr1, 47);  // Tmax
 	EEPROM.update(addr2, 7);   // Tmin
 	EEPROM.update(addr3, 4);   // DT - delta T
-	EEPROM.update(addr4, 0);   // T_C - 1 топло, 0 студено
+	EEPROM.update(addr4, 1);   // T_C - 1 топло, 0 студено
 	EEPROM.update(addr5, 45);  // T_BGV_BOILER
 	EEPROM.update(addr8, 16);  // Toutdoor ZIMA
 	EEPROM.update(addr81, 24); // Toutdoor LETO
@@ -1613,7 +1334,7 @@ void zav_nastr()
 	EEPROM.update(addr10, 5);  // Auto Trab korect EEPROM не приема отрицателни числа
 	EEPROM.update(addr101, 5); // CHAKA - ZK
 	EEPROM.update(addr102, 5); // Tled
-	EEPROM.update(addr103, 0); // flagHEAT
+	EEPROM.update(addr103, 1); // flagHEAT
 	EEPROM.update(addr104, 1); // flagCOOL
 	EEPROM.update(addr105, 0); // flagBGV
 	//----------------------------
@@ -1621,7 +1342,7 @@ void zav_nastr()
 	EEPROM.update(addr111, 0);	// ERROR_HP
 	EEPROM.update(addr1111, 0); // ERROR_DP
 
-	Serial.println("ZAVOD NASTROIKI");
+	//Serial.println("ZAVOD NASTROIKI");
 	lcd.clear();
 	lcd.setCursor(4, 1);
 	lcd.print("Upload setup");
@@ -1633,20 +1354,20 @@ void zav_nastr()
 // Показване на настр. на монитор
 void Read_Nastrroiki()
 {
-	Serial.println("Read nastroiki - READ");
+	//Serial.println("Read nastroiki - READ");
 	wdt_reset();
 	//-----------------------------------
 
 	if (digitalRead(ReadNastr) == LOW)
 	{
-		Serial.println("------------------");
-		Serial.println("Read NASTROIKI");
-		Serial.println("------------------");
+		//Serial.println("------------------");
+		//Serial.println("Read NASTROIKI");
+		//Serial.println("------------------");
 		//-------------------------------
 		// Топло - студено
 		T_C = EEPROM.read(addr4);
-		// Serial.print("T_C = ");
-		// Serial.println(T_C);
+		// //Serial.print("T_C = ");
+		// //Serial.println(T_C);
 
 		// Avto - manual
 		int ATrab = EEPROM.read(addr9);
@@ -1657,50 +1378,50 @@ void Read_Nastrroiki()
 		else if (T_C == 1)
 		{ // manual heat
 			Trab = EEPROM.read(addr0);
-			Serial.print("Trab = ");
-			Serial.println(Trab);
+			//Serial.print("Trab = ");
+			//Serial.println(Trab);
 		}
 		else if (T_C == 0)
 		{ // manual cool
 			Trab = EEPROM.read(addr01);
-			Serial.print("Trab = ");
-			Serial.println(Trab);
+			//Serial.print("Trab = ");
+			//Serial.println(Trab);
 		}
 
 		Tmax = EEPROM.read(addr1);
-		// Serial.print("Tmax = ");
-		// Serial.println(Tmax);
+		// //Serial.print("Tmax = ");
+		// //Serial.println(Tmax);
 		Tmin = EEPROM.read(addr2);
-		// Serial.print("Tmin = ");
-		// Serial.println(Tmin);
+		// //Serial.print("Tmin = ");
+		// //Serial.println(Tmin);
 		DT = EEPROM.read(addr3);
-		// Serial.print("DT = ");
-		// Serial.println(DT);
+		// //Serial.print("DT = ");
+		// //Serial.println(DT);
 		//
 		Tbgv = EEPROM.read(addr5);
-		// Serial.print("Tbgv = ");
-		// Serial.println(Tbgv);
+		// //Serial.print("Tbgv = ");
+		// //Serial.println(Tbgv);
 		// Tdef = EEPROM.read(addr6);
-		// Serial.print("Tdef = ");
-		// Serial.println(Tdef);
+		// //Serial.print("Tdef = ");
+		// //Serial.println(Tdef);
 		// Delta_T_def = EEPROM.read(addr7);
-		// Serial.print("Delta_T_def = ");
-		// Serial.println(Delta_T_def);
+		// //Serial.print("Delta_T_def = ");
+		// //Serial.println(Delta_T_def);
 		Tout_ZIMA = EEPROM.read(addr8);
-		// Serial.print("Tout_ZIMA = ");
-		// Serial.println(Tout_ZIMA);
-		// Tout_LETO = EEPROM.read(addr81);
-		// Serial.print("Tout_LETO = ");
-		// Serial.println(Tout_LETO);
+		// //Serial.print("Tout_ZIMA = ");
+		// //Serial.println(Tout_ZIMA);
+		Tout_LETO = EEPROM.read(addr81);
+		// //Serial.print("Tout_LETO = ");
+		// //Serial.println(Tout_LETO);
 		flagHEAT = EEPROM.read(addr103);
-		// Serial.print("flagHEAT = ");
-		// Serial.println(flagHEAT);
+		// //Serial.print("flagHEAT = ");
+		// //Serial.println(flagHEAT);
 		flagCOOL = EEPROM.read(addr104);
-		// Serial.print("flagCOOL = ");
-		// Serial.println(flagCOOL);
+		// //Serial.print("flagCOOL = ");
+		// //Serial.println(flagCOOL);
 		flagBGV = EEPROM.read(addr105);
-		// Serial.print("flagBGV = ");
-		// Serial.println(flagBGV);
+		// //Serial.print("flagBGV = ");
+		// //Serial.println(flagBGV);
 
 		lcd.clear();
 		int i = 1;
@@ -1753,6 +1474,17 @@ void Read_Nastrroiki()
 			lcd.setCursor(0, 3);
 			lcd.print("Tled = ");
 			lcd.print(Tled);
+
+			// KompWorkTime
+			KompWork KWTime(32, addr106, addr107);
+			unsigned long KWT = KWTime.getHours();
+			lcd.setCursor(10, 3);
+			lcd.print("KWT=");
+			lcd.print(KWT);
+			//Serial.println("KWTime = " + String(KWT));
+			delay(100);
+			
+			//  Нишан за ауто и ръчно
 			//----------------------
 			if (ATrab == 1)
 			{
@@ -1764,25 +1496,26 @@ void Read_Nastrroiki()
 					lcd.print(Tout_LETO);
 				//-------------------------
 			}
+			HP_ERROR_LCD();
 			if (millis() - Stop_data >= 5000)
 			{
 				i = 0;
 			}
 		}
-
+		wdt_reset();
 		tempRead();
 		lcd.clear();
 		Menu_screen();
 	}
 
-	Serial.println("Read nastroiki - end READ");
+	//Serial.println("Read nastroiki - end READ");
 }
 
 //--------------------------------------
 // Включване - изключване на автоматичен режим
 void AUTO_Trab_setup()
 {
-	Serial.println("AUTO_temp - READ");
+	//Serial.println("AUTO_temp - READ");
 	uint8_t MySREG = SREG;
 	lcd.clear();
 	bool i = LOW;
@@ -1807,8 +1540,8 @@ void AUTO_Trab_setup()
 		lcd.setCursor(0, 3);
 		lcd.print("< save   exit >");
 
-		Serial.print("ATrab  = ");
-		Serial.println(AutoTrab);
+		//Serial.print("ATrab  = ");
+		//Serial.println(AutoTrab);
 
 		if (digitalRead(pinDoly) == LOW)
 		{
@@ -1882,7 +1615,7 @@ void AUTO_Trab_setup()
 	lcd.clear();
 	delay(10);
 	SREG = MySREG;
-	Serial.println("AUTO_temp - end READ");
+	//Serial.println("AUTO_temp - end READ");
 }
 
 //--------------------------------------
@@ -1892,7 +1625,7 @@ void AUTO_Trab_korect()
 	int AutoTrab = EEPROM.read(addr9);
 	if (AutoTrab == 1)
 	{
-		Serial.println("AUTO_Trab_korect - READ");
+		//Serial.println("AUTO_Trab_korect - READ");
 		uint8_t MySREG = SREG;
 		unsigned long StopBut = millis();
 		unsigned long lastStopBut = millis();
@@ -1918,8 +1651,8 @@ void AUTO_Trab_korect()
 			lcd.setCursor(0, 3);
 			lcd.print("< save   exit >");
 
-			Serial.print("ATkor = ");
-			Serial.println(ATrab_korect);
+			//Serial.print("ATkor = ");
+			//Serial.println(ATrab_korect);
 
 			if (digitalRead(pinDoly) == LOW)
 			{
@@ -2003,7 +1736,7 @@ void AUTO_Trab_korect()
 
 		lcd.clear();
 		delay(10);
-		Serial.println("AUTO_Trab_korect - end READ");
+		//Serial.println("AUTO_Trab_korect - end READ");
 		SREG = MySREG;
 	}
 	//--------------------------------------
@@ -2014,7 +1747,7 @@ void AUTO_Trab_korect()
 int AutoTrabToutSeting()
 {
 	uint8_t MySREG = SREG;
-	Serial.println("------ATrab-------");
+	//Serial.println("------ATrab-------");
 	int ATrab = EEPROM.read(addr9);
 	int T_C = EEPROM.read(addr4);
 	int Tmax = EEPROM.read(addr1);
@@ -2033,10 +1766,10 @@ int AutoTrabToutSeting()
 			int Trabb = (int)(map(*tt10_OUT, -15, 15, 45, 30) + (Tkor - 5));
 			if (Trabb > Tmax)
 				Trabb = Tmax;
-			Serial.println("------11--HEAD----------");
-			Serial.print("Trab = ");
-			Serial.println(Trabb);
-			Serial.println("------22--HEAD--------");
+			//Serial.println("------11--HEAD----------");
+			//Serial.print("Trab = ");
+			//Serial.println(Trabb);
+			//Serial.println("------22--HEAD--------");
 
 			Trab = Trabb;
 		}
@@ -2047,10 +1780,10 @@ int AutoTrabToutSeting()
 			if (Trabb < Tmin)
 				Trabb = Tmin;
 
-			Serial.println("------11--COOL--------");
-			Serial.print("Trab = ");
-			Serial.println(Trabb);
-			Serial.println("------22--COOL--------");
+			//Serial.println("------33--COOL--------");
+			//Serial.print("Trab = ");
+			//Serial.println(Trabb);
+			//Serial.println("------44--COOL--------");
 
 			Trab = Trabb;
 		}
@@ -2064,23 +1797,21 @@ int AutoTrabToutSeting()
 			Trab = EEPROM.read(addr01);
 		else
 		{
-			Serial.println("Error: Invalid T_C value");
+			//Serial.println("Error: Invalid T_C value");
 			delay(2000);
 		}
 	}
-	Serial.print("AUTO_Trab = " + String(Trab));
-	
+	//Serial.println("AUTO_Trab = " + String(Trab));
+
 	SREG = MySREG;
 	return Trab;
-
-	
 }
 
 //--------------------------------------
 // Задаване на време за забавяне старт комп
 void ZK_KOMP_nastroi()
 {
-	Serial.println("ZK_KOMP_nastroi - READ");
+	//Serial.println("ZK_KOMP_nastroi - READ");
 	uint8_t MySREG = SREG;
 	lcd.clear();
 	bool i = LOW;
@@ -2106,8 +1837,8 @@ void ZK_KOMP_nastroi()
 		lcd.setCursor(0, 3);
 		lcd.print(" > exit     down-");
 
-		Serial.print("ZK = ");
-		Serial.println(ZK);
+		//Serial.print("ZK = ");
+		//Serial.println(ZK);
 
 		if (digitalRead(pinDoly) == LOW)
 		{
@@ -2182,7 +1913,7 @@ void ZK_KOMP_nastroi()
 
 	} while (i == LOW); // (i == LOW);
 
-	Serial.println("CHAKA_KOMP_nastroi - end READ");
+	//Serial.println("CHAKA_KOMP_nastroi - end READ");
 	lcd.clear();
 	delay(10);
 	SREG = MySREG;
@@ -2193,7 +1924,7 @@ void ZK_KOMP_nastroi()
 void HEAT_ON_OFF()
 {
 	//-----------------------------------
-	Serial.println("HEAT_ON_OFF - READ");
+	//Serial.println("HEAT_ON_OFF - READ");
 	uint8_t MySREG = SREG;
 	unsigned long StopButtHEAT = millis();
 	unsigned long lastStopButtHEAT = millis();
@@ -2218,8 +1949,8 @@ void HEAT_ON_OFF()
 		lcd.setCursor(0, 3);
 		lcd.print(" > exit     down-");
 
-		Serial.print("HEAT = ");
-		Serial.println(flagHEAT);
+		//Serial.print("HEAT = ");
+		//Serial.println(flagHEAT);
 
 		if (digitalRead(pinDoly) == LOW)
 		{
@@ -2230,7 +1961,7 @@ void HEAT_ON_OFF()
 				delay(50);
 				if (digitalRead(pinDoly) == LOW)
 				{
-					Serial.println("HEAT--");
+					//Serial.println("HEAT--");
 					flagHEAT = 0;
 					t = 1;
 				}
@@ -2251,7 +1982,7 @@ void HEAT_ON_OFF()
 				if (digitalRead(pinGore) == LOW)
 				{
 					flagHEAT = 1;
-					Serial.println("HEAT++");
+					//Serial.println("HEAT++");
 					t = 1;
 				}
 				if (flagHEAT > 1)
@@ -2264,12 +1995,6 @@ void HEAT_ON_OFF()
 		if (digitalRead(pinLevo) == LOW)
 		{
 			EEPROM.update(addr103, flagHEAT);
-			if (flagCOOL == 1 && flagHEAT == 1)
-			{
-				flagCOOL = 0;
-				EEPROM.update(addr104, flagCOOL);
-				EEPROM.update(addr103, flagHEAT);
-			}
 
 			StopButtHEAT = millis();
 			// чека да се пусне бутона
@@ -2316,7 +2041,7 @@ void HEAT_ON_OFF()
 void COOL_ON_OFF()
 {
 	//-----------------------------------
-	Serial.println("COOL_ON_OFF - READ");
+	//Serial.println("COOL_ON_OFF - READ");
 	uint8_t MySREG = SREG;
 	unsigned long StopButtCOOL = millis();
 	unsigned long lastStopButtCOOL = millis();
@@ -2341,8 +2066,8 @@ void COOL_ON_OFF()
 		lcd.setCursor(0, 3);
 		lcd.print(" > exit     down-");
 
-		Serial.print("COOL = ");
-		Serial.println(flagCOOL);
+		//Serial.print("COOL = ");
+		//Serial.println(flagCOOL);
 
 		if (digitalRead(pinDoly) == LOW)
 		{
@@ -2353,7 +2078,7 @@ void COOL_ON_OFF()
 				delay(100);
 				if (digitalRead(pinDoly) == LOW)
 				{
-					Serial.println("COOL--");
+					//Serial.println("COOL--");
 					flagCOOL = 0;
 					t = 1;
 				}
@@ -2374,7 +2099,7 @@ void COOL_ON_OFF()
 				if (digitalRead(pinGore) == HIGH)
 				{
 					flagCOOL = 1;
-					Serial.println("COOL++");
+					//Serial.println("COOL++");
 					t = 1;
 				}
 				if (flagCOOL > 1)
@@ -2389,13 +2114,6 @@ void COOL_ON_OFF()
 		if (digitalRead(pinLevo) == LOW)
 		{
 			EEPROM.update(addr104, flagCOOL);
-
-			if (flagCOOL == 1 && flagHEAT == 1)
-			{
-				flagHEAT = 0;
-				EEPROM.update(addr103, flagHEAT);
-				EEPROM.update(addr104, flagCOOL);
-			}
 
 			// чека да се пусне бутона
 			StopButtCOOL = millis();
@@ -2441,7 +2159,7 @@ void COOL_ON_OFF()
 void BGV_ON_OFF()
 {
 	//-----------------------------------
-	Serial.println("BGV_ON_OFF - READ");
+	//Serial.println("BGV_ON_OFF - READ");
 	uint8_t MySREG = SREG;
 	unsigned long StopButtBGV = millis();
 	unsigned long lastStopButtBGV = millis();
@@ -2466,8 +2184,8 @@ void BGV_ON_OFF()
 		lcd.setCursor(0, 3);
 		lcd.print(" > exit     down-");
 
-		Serial.print("BGV = ");
-		Serial.println(flagBGV);
+		//Serial.print("BGV = ");
+		//Serial.println(flagBGV);
 
 		if (digitalRead(pinDoly) == LOW)
 		{
@@ -2478,7 +2196,7 @@ void BGV_ON_OFF()
 				delay(50);
 				if (digitalRead(pinDoly) == LOW)
 				{
-					Serial.println("BGV--");
+					//Serial.println("BGV--");
 					flagBGV = 0;
 					t = 1;
 				}
@@ -2500,7 +2218,7 @@ void BGV_ON_OFF()
 				if (digitalRead(pinGore) == HIGH)
 				{
 					flagBGV = 1;
-					Serial.println("BGV++");
+					//Serial.println("BGV++");
 					t = 1;
 				}
 				if (flagBGV > 1)

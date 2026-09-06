@@ -2,14 +2,14 @@
 // Малък помощен модул за следене на общото време на работа на компресора.
 // Този клас записва натрупаните секунди и часове в EEPROM, за да може
 // да се проследи експлоатационното време на компресора.
-#include "KompWorkTime.h"   // Включваме хедъра на класа
+#include "KompWorkTime.h" // Включваме хедъра на класа
 
 // ------------------------------------------------------------
 // КОНСТРУКТОР
 // ------------------------------------------------------------
 KompWork::KompWork(uint8_t kompPin, int addrSeconds, int addrHours)
 {
-    this->kompPin = kompPin;        // Запомняме пина на компресора
+    this->kompPin = kompPin;         // Запомняме пина на компресора
     this->addrSeconds = addrSeconds; // EEPROM адрес за секунди
     this->addrHours = addrHours;     // EEPROM адрес за часове
 
@@ -17,36 +17,42 @@ KompWork::KompWork(uint8_t kompPin, int addrSeconds, int addrHours)
     EEPROM.get(addrSeconds, totalSeconds);
     EEPROM.get(addrHours, totalHours);
 
-    lastState = LOW;                // Първоначално приемаме, че компресорът е изключен
-    compressorStartMillis = 0;      // Няма стартово време
+    lastState = LOW;           // Първоначално приемаме, че компресорът е изключен
+    compressorStartMillis = 0; // Няма стартово време
 
     // Ако EEPROM е празна → стойността е 0xFFFFFFFF → нулираме
-    if (totalSeconds == 0xFFFFFFFF) totalSeconds = 0;
-    if (totalHours == 0xFFFFFFFF) totalHours = 0;
+    if (totalSeconds > 200000000)
+    {
+        totalSeconds = 0;
+        EEPROM.put(addr106, totalSeconds);
+        delay(1000);
+        EEPROM.get(addrSeconds, totalSeconds);
+        //Serial.println("totalSeconds = " + String(totalSeconds));
+        delay(5000);
+    }
+    if (totalHours > 200000000)
+    {
+        totalHours = 0;
+        EEPROM.put(addr107, totalHours);
+        delay(1000);
+        EEPROM.get(addrHours, totalHours);
+        //Serial.println("totalHours = " + String(totalHours));
+        delay(5000);
+    }
 }
 
-
-//--------------------------------------------------------------
-// Настройка на пиновете
-void KompWork::KWTsetup()
-{
-    kompPin = 32;
-    addrSeconds = addr106;
-    addrHours   = addr107;
-}
 // ------------------------------------------------------------
 // LOOP — следи компресора и записва времето
 // ------------------------------------------------------------
 void KompWork::KWTloop()
 {
-    //KWTsetup();
-    uint8_t state = digitalRead(kompPin);  // Четем текущото състояние на компресора
+    uint8_t state = digitalRead(kompPin); // Четем текущото състояние на компресора
 
     // --------------------------------------------------------
     // 1. Компресорът току-що се е включил
     if (state == HIGH && lastState == LOW)
     {
-        compressorStartMillis = millis();  // Запомняме момента на включване
+        compressorStartMillis = millis(); // Запомняме момента на включване
     }
 
     // --------------------------------------------------------
@@ -59,13 +65,13 @@ void KompWork::KWTloop()
         // Ако е минала 1 минута,
         if (elapsed >= 60000)
         {
-            totalSeconds += 60;           // Добавяме 60 секунди
+            totalSeconds += 60;               // Добавяме 60 секунди
             compressorStartMillis = millis(); // Рестартираме таймера
 
             // Ако секундите са кратни на 3600 → минал е 1 час
             if (totalSeconds % 3600 == 0)
             {
-                totalHours++;             // Увеличаваме часовете
+                totalHours++;                      // Увеличаваме часовете
                 EEPROM.put(addrHours, totalHours); // Записваме в EEPROM
             }
 
@@ -79,7 +85,7 @@ void KompWork::KWTloop()
     if (state == LOW && lastState == HIGH)
     {
         unsigned long elapsed = (millis() - compressorStartMillis) / 1000;
-        totalSeconds += elapsed;          // Добавяме последните секунди
+        totalSeconds += elapsed; // Добавяме последните секунди
 
         // Ако секундите са >= 3600 → пресмятаме часовете
         if (totalSeconds >= 3600)
@@ -100,8 +106,7 @@ void KompWork::KWTloop()
 // ------------------------------------------------------------
 unsigned long KompWork::getHours()
 {
-    Serial.println("KompTotalHourst = " + totalHours);
-    return totalHours;   // Връщаме часовете
+    //Serial.println("KompTotalHourst = " + totalHours);
+    EEPROM.get(addrHours, totalHours); // Четем от EEPROM
+    return totalHours;                 // Връщаме часовете
 }
-
-

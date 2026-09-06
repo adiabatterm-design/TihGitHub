@@ -14,10 +14,10 @@ Cool::Cool()
     cool_Chaka = millis();
     _4valve_Chaka = millis();
 
-    Serial.print("constructor Class_Cool = ");
+    //Serial.print("constructor Class_Cool = ");
     STOP_ALL;
-    Serial.print("TrabLeto = ");
-    Serial.println(Trab);
+    //Serial.print("TrabLeto = ");
+    //Serial.println(Trab);
     lcd.setCursor(15, 2);
     lcd.print(" C ");
 
@@ -26,9 +26,9 @@ Cool::Cool()
 //-----------------------
 Cool::~Cool()
 {
-    Serial.println("destructor Class_Cool");
-    Serial.print("tt8_BUFFER = ");
-    Serial.println(*tt8_BUFFER);
+    //Serial.println("destructor Class_Cool");
+    //Serial.print("tt8_BUFFER = ");
+    //Serial.println(*tt8_BUFFER);
     STOP_ALL;
     // EEPROM_READ();
 }
@@ -49,12 +49,12 @@ void Cool::Start_Cool()
     Dat_potok_error();
     ERROR_LCD();
     // int Trab = EEPROM.read(addr0);
-    int Tbgv = EEPROM.read(addr5);
-    int Trab = EEPROM.read(addr01);
-    Serial.print("Trab = ");
-    Serial.println(Trab);
-    Serial.print("Tbgv = ");
-    Serial.println(Tbgv);
+    //int Tbgv = EEPROM.read(addr5);
+    int Trab = AutoTrabToutSeting();
+    //Serial.print("Trab = ");
+    //Serial.println(Trab);
+    //Serial.print("Tbgv = ");
+    //Serial.println(Tbgv);
     cool_Chaka = millis();
     tempReadTime = millis();
     //--------------------
@@ -70,7 +70,7 @@ void Cool::Start_Cool()
     //-----------------------------
     while (cc)
     {
-        Serial.println("----Cool-LOOP-----");
+        //Serial.println("----Cool-LOOP-----");
         // кучето
         wdt_reset();
         // на лсд
@@ -104,8 +104,8 @@ void Cool::Start_Cool()
             ZashtitaCool();
             // Trab = EEPROM.read(addr01);
             // Trab = EEPROM.read(addr01);
-            Serial.print("Trab = ");
-            Serial.println(Trab);
+            //Serial.print("Trab = ");
+            //Serial.println(Trab);
             tempReadTime = millis();
         }
         //-------------------------------------------------
@@ -151,7 +151,7 @@ void Cool::Start_Cool()
             cc = 0;
     }
 
-    Serial.println("----Cool-END-----");
+    //Serial.println("----Cool-END-----");
     lcd_NISHAN();
     lcd.setCursor(15, 2);
     lcd.print("   ");
@@ -164,8 +164,8 @@ void Cool::StartKompSonda()
 {
     uint8_t MySREG = SREG;
     EEPROM_READ();
-    Serial.println("------2----------");
-    Serial.println("StartKompSondaCOOL");
+    //Serial.println("------2----------");
+    //Serial.println("StartKompSondaCOOL");
 
     if (digitalRead(Komp) == LOW)
     {
@@ -183,8 +183,8 @@ void Cool::StartKompSonda()
         do
         { // чака
             delay(1000);
-            Serial.print("ChakaCool_START = ");
-            Serial.println(15 - (millis() - cool_Chaka) / 1000);
+            //Serial.print("ChakaCool_START = ");
+            //Serial.println(15 - (millis() - cool_Chaka) / 1000);
             // След 15 сек да провери дали е затворил DP
             if ((millis() - cool_Chaka) / 1000 > 15)
             { // 30 @@@
@@ -222,8 +222,8 @@ void Cool::StartKompSonda()
         // включваме комп
         Komp_ON;
         lcd_NISHAN();
-        Serial.println("StartKompSondaCool - END");
-        Serial.println("----------2------------");
+        //Serial.println("StartKompSondaCool - END");
+        //Serial.println("----------2------------");
     }
     SREG = MySREG;
 }
@@ -231,8 +231,8 @@ void Cool::StartKompSonda()
 void Cool::StopKompSonda()
 {
     uint8_t MySREG = SREG;
-    Serial.println("------2----------");
-    Serial.println("StopKompSonda");
+    //Serial.println("------2----------");
+    //Serial.println("StopKompSonda");
 
     if (digitalRead(Komp) == HIGH)
     {
@@ -250,7 +250,7 @@ void Cool::StopKompSonda()
         do
         { // чака
             delay(100);
-            Serial.println("ChakaCool_STOP = " + String(15 - (millis() - cool_Chaka) / 1000));
+            //Serial.println("ChakaCool_STOP = " + String(15 - (millis() - cool_Chaka) / 1000));
             if ((millis() - cool_Chaka) / 1000 > 15)
             {
                 PUMP_SONDA_OFF;
@@ -284,8 +284,8 @@ void Cool::StopKompSonda()
         Komp_OFF;
         PUMP_SONDA_OFF;
         lcd_NISHAN();
-        Serial.println("StopKompSondaCool - END");
-        Serial.println("----------22------------");
+        //Serial.println("StopKompSondaCool - END");
+        //Serial.println("----------22------------");
     }
     SREG = MySREG;
 }
@@ -300,7 +300,7 @@ void Cool::ZashtitaCool()
     // High_outdour_temp_stop();
     //}
     // High_outdour_temp_stop();
-    Serial.println("====ZashtitaCool====");
+    //Serial.println("====ZashtitaCool====");
     wdt_reset();
     MotorZ_RST();
     T5_LED_temp();
@@ -314,6 +314,6 @@ void Cool::ZashtitaCool()
     lcd_NISHAN();
     ERROR_LCD();
     // RESET();
-    Serial.println("====ZashtitaCool - END====");
+    //Serial.println("====ZashtitaCool - END====");
     SREG = MySREG;
 }

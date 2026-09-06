@@ -2,8 +2,8 @@
 
 BGV::BGV()
 {
-    Serial.print("constructor Class_Tbgv = ");
-    Serial.println(Tbgv);
+    //Serial.print("constructor Class_Tbgv = ");
+    //Serial.println(Tbgv);
     STOP_ALL;
     lcd.setCursor(15, 2);
     lcd.print("BGV");
@@ -27,9 +27,9 @@ BGV::BGV()
 
 BGV::~BGV()
 {
-    Serial.println("destructor Class_BGV");
-    Serial.print("tt7_BOILER = ");
-    Serial.println(*tt7_BOILER);
+    //Serial.println("destructor Class_BGV");
+    //Serial.print("tt7_BOILER = ");
+    //Serial.println(*tt7_BOILER);
     STOP_ALL;
     // EEPROM_READ();
 }
@@ -45,8 +45,6 @@ void BGV::Start_BGV()
     int bbb = 1;
 
     //----------------------------
-
-    //
     // включване на помпи
     if (digitalRead(PumpBGV) == LOW)
         PumpBGV_ON;
@@ -75,10 +73,10 @@ void BGV::Start_BGV()
             Read_Nastrroiki();
             Tbgv = EEPROM.read(addr5);
             Trab = EEPROM.read(addr0);
-            Serial.print("Trab = ");
-            Serial.println(Trab);
-            Serial.print("Tbgv = ");
-            Serial.println(Tbgv);
+            //Serial.print("Trab = ");
+            //Serial.println(Trab);
+            //Serial.print("Tbgv = ");
+            //Serial.println(Tbgv);
             tempReadTime = millis();
         }
         //-------------------------------------------------
@@ -112,7 +110,7 @@ void BGV::Start_BGV()
 
         delay(200);
 
-        Serial.println("=========BGV_BGV=========");
+        //Serial.println("=========BGV_BGV=========");
 
     } while (bbb == 1);
 
@@ -142,7 +140,7 @@ void BGV::Start_BGV()
 
     wdt_reset();
     SREG = MySREG;
-    Serial.println("=====BGV_END====");
+    //Serial.println("=====BGV_END====");
 }
 
 //-----------------------------------
@@ -150,8 +148,8 @@ void BGV::StartKompSonda()
 {
     uint8_t MySREG = SREG;
     EEPROM_READ();
-    Serial.println("------3----------");
-    Serial.println("StartKompSondaBGV");
+    //Serial.println("------3----------");
+    //Serial.println("StartKompSondaBGV");
 
     if (digitalRead(Komp) == LOW)
     {
@@ -170,8 +168,8 @@ void BGV::StartKompSonda()
         {
             // чака датчик поток да затвори
             delay(1000);
-            Serial.print("ChakaBGV_START = ");
-            Serial.println(15 - (millis() - bgv_Chaka) / 1000);
+            //Serial.print("ChakaBGV_START = ");
+            //Serial.println(15 - (millis() - bgv_Chaka) / 1000);
             // След 15 сек да провери дали е затворил DP
             if ((millis() - bgv_Chaka) / 1000 > 15)
             {
@@ -200,8 +198,8 @@ void BGV::StartKompSonda()
         // включваме комп
         Komp_ON;
         lcd_NISHAN();
-        Serial.println("StartKompSondaBGV - END");
-        Serial.println("----------3------------");
+        //Serial.println("StartKompSondaBGV - END");
+        //Serial.println("----------3------------");
     }
     SREG = MySREG;
 }
@@ -209,8 +207,8 @@ void BGV::StartKompSonda()
 void BGV::StopKompSonda()
 {
     uint8_t MySREG = SREG;
-    Serial.println("------3----------");
-    Serial.println("StopKompSonda");
+    //Serial.println("------3----------");
+    //Serial.println("StopKompSonda");
 
     if (digitalRead(Komp) == HIGH)
     {
@@ -228,8 +226,8 @@ void BGV::StopKompSonda()
         do
         { // чака
             delay(100);
-            Serial.print("ChakaBGV_STOP = ");
-            Serial.println(15 - (millis() - bgv_Chaka) / 1000);
+            //Serial.print("ChakaBGV_STOP = ");
+            //Serial.println(15 - (millis() - bgv_Chaka) / 1000);
             if ((millis() - bgv_Chaka) / 1000 > 15)
             {
                 PUMP_SONDA_OFF;
@@ -262,8 +260,8 @@ void BGV::StopKompSonda()
 
         Komp_OFF;
         PUMP_SONDA_OFF;
-        Serial.println("StopKompSondaBCV - END");
-        Serial.println("----------33------------");
+        //Serial.println("StopKompSondaBCV - END");
+        //Serial.println("----------33------------");
     }
     SREG = MySREG;
 }
@@ -278,7 +276,7 @@ void BGV::ZashtitaBGV()
     // High_outdour_temp_stop();
     //}
     // High_outdour_temp_stop();
-    Serial.println("====ZashtitaBGV====");
+    //Serial.println("====ZashtitaBGV====");
     MotorZ_RST();
     T5_LED_temp();
     // T4bgv_HIGH_temp();
@@ -291,6 +289,6 @@ void BGV::ZashtitaBGV()
     lcd_NISHAN();
     ERROR_LCD();
     // RESET();
-    Serial.println("====ZashtitaBGV - END====");
+    //Serial.println("====ZashtitaBGV - END====");
     SREG = MySREG;
 }

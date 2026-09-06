@@ -37,7 +37,7 @@ void LP_ERROR_LCD();
 void RESET();                   //
 void High_outdour_temp_stop();  //@@@
 void LOW_outdoor_temp_stop();
-void WIFI_Stop();
+//void WIFI_Stop();
 //четене на настройки
 void EEPROM_READ1(int *Trab, int *Tmax, int *Tmin,\
     int *Tbgv, int *Tled, int *DT, int *T_C, int *ZK);

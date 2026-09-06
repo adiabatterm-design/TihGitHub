@@ -1,0 +1,47 @@
+#include "UartPackager.h" // Включваме нашия ООП модул за комуникация
+
+// Създаваме обект "communicator" от нашия клас UartPackager. 
+// Подаваме му Serial1 (Хардуерния порт 1 на Arduino Mega - пинове 18 и 19)
+UartPackager communicator(Serial1);
+
+DataPacket myTxData; // Нашите данни, които ще изпращаме
+DataPacket myRxData; // Мястото, където ще се записват получените данни от ESP
+
+unsigned long lastTime = 0; // Пази кога за последно сме изпратили данни
+const unsigned long oneMinute = 60000; // 1 минута в милисекунди
+
+void setup() {
+  Serial.begin(115200);       // Пускаме основния Serial към компютъра за съобщения (Monitor)
+  communicator.begin(9600);   // Пускаме нашия комуникатор на скорост 9600
+  
+  // Пълним масивите с първоначални примерни данни за теста
+  for(int i = 0; i < 10; i++) {
+    String txt = "MegaMsg" + String(i);
+    txt.toCharArray(myTxData.err[i], 20); // Записваме текста в масива
+    myTxData.temp[i] = 20 + i;            // Примерни температури: 20, 21, 22...
+  }
+  Serial.println("--- Arduino Mega Стартира ---");
+}
+
+void loop() {
+  // 1. Изпращане на всеки 1 минута
+  if (millis() - lastTime >= oneMinute) {
+    lastTime = millis(); // Запомняме текущото време
+    
+    communicator.sendPacket(myTxData); // ООП магия: Изпращаме пакета автоматично с вградено CRC!
+    Serial.println(">>> Изпратени данни към ESP8266");
+  }
+
+  // 2. Постоянна проверка за входящи данни от ESP8266
+  if (communicator.receivePacket(myRxData)) { // Ако функцията върне TRUE (данните са дошли и CRC е вярно)
+    Serial.println("<<< Получени са НОВИ валидни данни от ESP8266:");
+    
+    // Извеждаме ги на компютърния екран, за да ги видим
+    for(int i = 0; i < 10; i++) {
+      Serial.print("Текст ["); Serial.print(i); Serial.print("]: "); Serial.print(myRxData.err[i]);
+      Serial.print(" | Число: "); Serial.println(myRxData.temp[i]);
+    }
+  }
+  
+  // Твоят останал код...
+}

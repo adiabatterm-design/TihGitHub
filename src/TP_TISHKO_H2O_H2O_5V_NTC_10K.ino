@@ -8,7 +8,7 @@
 	git   https://github.com/adiabatterm-design/TihGitHub.git
 */
 // ARDUINO MEGA 2560 - LCD 20x4
-// Последна редакция 16,08,2026 г.
+// Последна редакция 26,08,2026 г.
 // Прегледано - тествано
 
 #include <EEPROM.h>
@@ -33,6 +33,9 @@
 #include "NTC.h"
 #include "Clock_nastroi.h"
 #include "Nastroiki.h"
+//----------------
+ // Включваме нашия ООП модул за комуникация
+//#include "UartPackager.h"
 #include "KompWorkTime.h"
 //----------------
 #include "BGV.h"
@@ -43,11 +46,30 @@ int rest_wdt = 0;
 extern int addr106; // EEPROM адрес за секунди
 extern int addr107; // EEPROM адрес за часове
 
+BGV bgv;
+Heat heat;
+Cool cool;
+KompWork KWTime(32, addr106, addr107);
+//--------------------------------
+// Създаваме обект "communicator" от нашия клас UartPackager. 
+// Подаваме му Serial1 (Хардуерния порт 2 на Arduino Mega - пинове 16 и 17)
+//UartPackager communicator(Serial2);
+//DataPacket myTxData; // Нашите данни, които ще изпращаме
+//DataPacket myRxData; // Мястото, където ще се записват получените данни от ESP
+
+unsigned long lastTime = 0; // Пази кога за последно сме изпратили данни
+const unsigned long oneMinute = 10000; // @@@ 1 минута в милисекунди
+
+
+
+
+
 //--------------------------------------SETUP------
 void setup()
 {
-	// Serial
-	Serial.begin(9600);
+	// //Serial
+	Serial.begin(115200); // Serial monitor
+	//communicator.begin(9600);   // Пускаме нашия комуникатор на скорост 9600
 	// инициализация на часовника
 	clock.begin();
 
@@ -71,7 +93,7 @@ void setup()
 	pinMode(datPotok, INPUT_PULLUP); // no interrupt 3
 	pinMode(presHigh, INPUT_PULLUP); // HIGH_Preasure
 	pinMode(presLow, INPUT_PULLUP);	 // LOW_preasure
-	pinMode(WIFI, INPUT_PULLUP);	 // WiFi start_Stop
+	//pinMode(WIFI, INPUT_PULLUP);	 // WiFi start_Stop
 	// пинове RELAY
 	pinMode(Komp, OUTPUT);
 	pinMode(CAREL, OUTPUT);
@@ -93,12 +115,12 @@ void setup()
 	lcd.setCursor(3, 0);
 	lcd.print("SYSTEM TEST");
 	lcd.setCursor(4, 1);
-	lcd.print(L"15/07/2026");
+	lcd.print(L"26/08/2026");
 	lcd.setCursor(5, 2);
 	lcd.print("NTC 10K");
 
 	lcd.setCursor(3, 3);
-	lcd.print("TVP_07_2026");
+	lcd.print("TVP_08_2026");
 
 	delay(1000); // @@@ 5 sec
 	lcd.clear();
@@ -176,14 +198,14 @@ void setup()
 		recallClockSettings();
 		do
 		{
-			Serial.println("Push pin Desno");
+			//Serial.println("Push pin Desno");
 			delay(50);
 		} while (digitalRead(pinDesno) == LOW);
 	}
 	//--------------------------
 	// Работно време компресор
 	// Инициализация на пин и адреси за работното време на компресора
-	KompWork KWTime(32, addr106, addr107);
+	KWTime.KWTloop();
 
 	//-------------------------------------------------
 	// timer from temp read
@@ -192,7 +214,6 @@ void setup()
 	wdt_enable(WDTO_8S);
 	delay(100);
 	lcd.clear();
-	Start_komp = millis();
 
 } //----------------end setup--------------------------
 
@@ -244,20 +265,20 @@ void loop()
 	lcdMenu_temp5_nastroi(); // Разрешено по време на работа
 
 	//----------------------------------------
-	Serial.println("++++++++++LOOP++++++++++");
+	//Serial.println("++++++++++LOOP++++++++++");
 	delay(1000);
 	//----------------------------------------
 	// четене температури и извикване на меню на дисплея
-	Serial.println("tempRead-loop1");
+	//Serial.println("tempRead-loop1");
 	tempRead();
 	// Часовник
 	clockTime();
 	// На екран
 	Menu_screen(); // работен екран
 	// Проверка на системата
-	Serial.println("Dat_potok-loop1");
+	//Serial.println("Dat_potok-loop1");
 	Dat_potok_error();
-	Serial.println("Dat_potok-loop2");
+	//Serial.println("Dat_potok-loop2");
 	// HP високо налягане
 	HP_ERROR_LCD();
 	// LP ниско налягане
@@ -277,7 +298,7 @@ void loop()
 	// T4 bgv out
 	T4bgv_HIGH_temp();
 	// WIFI - start - stop
-	WIFI_Stop();
+	//WIFI_Stop();
 	// CHAKA_300();
 	//------------------------------------
 	//  BGV
@@ -285,18 +306,17 @@ void loop()
 	int flagBGV = EEPROM.read(addr105);
 	int Tbgv = EEPROM.read(addr5);
 
-	if (flagBGV == 1 && *tt3_BGV_IN < Tbgv - DT)
+	if (flagBGV == 1 && *tt3_BGV_IN < Tbgv - DT) //tt7_BOILER
 	{
-		Serial.println("++++++++++++++++++");
-		Serial.println("BGV");
+		//Serial.println("++++++++++++++++++");
+		//Serial.println("BGV");
 		Dat_potok_error();
-		BGV H20;
-		H20.Start_BGV();
+		bgv.Start_BGV();
 	}
 	else
 	{
-		Serial.println("++++++++++++++++++");
-		Serial.println("flagBGV = " + String(flagBGV));
+		//Serial.println("++++++++++++++++++");
+		//Serial.println("flagBGV = " + String(flagBGV));
 	}
 
 	//------------------------------------
@@ -307,17 +327,15 @@ void loop()
 	// условие за запуск
 	if (flagHEAT == 1 && T_C == 1)
 	{
-		Serial.println("===========");
-		Serial.println("HEAT");
+		//Serial.println("===========");
+		//Serial.println("HEAT");
 		Dat_potok_error();
-		Heat toplo;
-		// if (*tt3_BGV_IN > Tbgv - DT)
-		toplo.Start_Heat();
+		heat.Start_Heat();
 	}
 	else
 	{
-		Serial.println("++++++++++++++++++++++++++");
-		Serial.println("flagHEAT = " + String(flagHEAT));
+		//Serial.println("++++++++++++++++++++++++++");
+		//Serial.println("flagHEAT = " + String(flagHEAT));
 	}
 
 	//-----------------------------------
@@ -326,20 +344,20 @@ void loop()
 
 	if (flagCOOL == 1 && T_C == 0)
 	{
-		Serial.println("===========");
-		Serial.println("COOL");
+		//Serial.println("===========");
+		//Serial.println("COOL");
 		Dat_potok_error();
 		Cool stud;
 		stud.Start_Cool();
 	}
 	else
 	{
-		Serial.println("++++++++++++++++++++");
-		Serial.println("flagCOOL = " + String(flagCOOL));
+		//Serial.println("++++++++++++++++++++");
+		//Serial.println("flagCOOL = " + String(flagCOOL));
 	}
 
 	//-----------------------------------
-	// Serial.println("tempRead-loop2");
+	// //Serial.println("tempRead-loop2");
 	// START_ALL;
 	//  delay(5000);
 	//  STOP_ALL;

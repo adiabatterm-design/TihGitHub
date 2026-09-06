@@ -36,7 +36,7 @@ LP - пресостат ниско налягане.
 HP - пресостат високо налягане.
 SDA - I2C протокол LCD, clock.
 SCL - I2C протокол LCD, clock. 
-TXD, RXD UART протокол, Serial port.
+TXD, RXD UART протокол, //Serial port.
 WIFI - пуск - стор то WIFI - не се използва.
 GND - обща нула, земя.
 MISO, MOSI, SS, CS1, CS2 - SPI протокол - не се използва,

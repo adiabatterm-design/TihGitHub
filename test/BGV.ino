@@ -1,29 +1,35 @@
-// BGV.ino
-// Логика за режима "БГВ" (битова гореща вода).
-// Този файл съдържа класа `BGV`, който наследява `ModeController` и реализира
-// специфичната логика за поддържане и защита на бойлера/горещата вода.
 #include "BGV.h"
 
-BGV::BGV() : ModeController("BGV")
+BGV::BGV()
 {
-    // Когато се създаде нов обект за БГВ режим, първо се подготвя началното състояние.
-    Serial.print("constructor Class_Tbgv = "); // Печатаме в сериен порт името на конструктора.
-    Serial.println(Tbgv); // Показваме текущата стойност на Tbgv.
-    STOP_ALL; // Спираме всички релета, за да няма случайна работа в началото.
-    prepareModeEntry(); // Зареждаме настройките и показваме името на режима на LCD.
+    //Serial.print("constructor Class_Tbgv = ");
+    //Serial.println(Tbgv);
+    STOP_ALL;
+    lcd.setCursor(15, 2);
+    lcd.print("BGV");
     //--------------------------------
-    loadSettings(); // Зареждаме актуалните стойности от EEPROM.
-    bgv_Chaka = millis(); // Започваме ново мерене на време за този режим.
-    _4valve_Chaka = millis(); // Започваме и таймера за 4-ходовия клапан.
+    T_C = EEPROM.read(addr4);
+    Tbgv = EEPROM.read(addr5);
+    Tmax = EEPROM.read(addr1); // Tmax
+    Tmin = EEPROM.read(addr2); // Tmin
+    DT = EEPROM.read(addr3);   // Delta_T
+    Tled = EEPROM.read(addr102);
+    CHAKA = EEPROM.read(addr101);
+    bgv_Chaka = millis();
+    _4valve_Chaka = millis();
     //-------------------
-    EEPROM_READ(); // Прочитаме отново настройките, за да сме сигурни, че са актуални.
+    flagHEAT = EEPROM.read(addr103);
+    flagCOOL = EEPROM.read(addr104);
+    flagBGV = EEPROM.read(addr105);
+    //-------------------
+    EEPROM_READ();
 }
 
 BGV::~BGV()
 {
-    Serial.println("destructor Class_BGV");
-    Serial.print("tt7_BOILER = ");
-    Serial.println(*tt7_BOILER);
+    //Serial.println("destructor Class_BGV");
+    //Serial.print("tt7_BOILER = ");
+    //Serial.println(*tt7_BOILER);
     STOP_ALL;
     // EEPROM_READ();
 }
@@ -31,34 +37,32 @@ BGV::~BGV()
 //------------------------------------
 void BGV::Start_BGV()
 {
-    uint8_t MySREG = SREG; // Запазваме текущото състояние на прерыванията.
-    prepareModeEntry(); // Подготвяме режима за работа.
-    // Входът в този метод означава, че системата е избрала режим BGV.
-    // Тук се управлява целият цикъл за БГВ: четене на температури,
-    // контрол на компресора, защити и преходи между режими.
-    CHAKA_300(); // Изчакваме малко време при вход в режима.
-    int bbb = 1; // Флаг за продължаване на цикъла.
+    uint8_t MySREG = SREG;
+    // Нулираме забавянето
+    // проверка на флаговете
+    // топло разрешено - забранено
+    CHAKA_300();
+    int bbb = 1;
 
     //----------------------------
-
-    //
-    // Уверяваме се, че помпите, свързани с БГВ режима, са в правилно състояние.
-    // Ако помпата е изключена, я включваме. Ако буферът е включен, го изключваме,
-    // за да не се смесват двете управляващи логики.
-    applyCommonRelayState(true, false, true); // Включваме БГВ помпата, изключваме буфера и включваме 4-ходовия клапан.
+    // включване на помпи
+    if (digitalRead(PumpBGV) == LOW)
+        PumpBGV_ON;
+    if (digitalRead(PumpBUFFER) == HIGH)
+        PumpBUFFER_OFF;
+    //_4valve
+    _4valve_ON;
 
     //--------------------
     do
     {
-        // Поддържаме watchdog-а жив, за да не се рестартира микроконтролерът.
+        // кучето
         wdt_reset();
-        // Показваме името на режима на LCD, за да е ясно какъв режим работи в момента.
+        // на лсд
         lcd.setCursor(15, 2);
         lcd.print(" BGV ");
 
-        // На всеки 2 секунди се четат нови температурни стойности.
-        // Това е важно, защото решението за старт/стоп на компресора зависи
-        // от актуалните стойности на сензорите.
+        // четене на температури
         if ((millis() - tempReadTime) / 1000 >= 2)
         {
             tempRead();
@@ -69,10 +73,10 @@ void BGV::Start_BGV()
             Read_Nastrroiki();
             Tbgv = EEPROM.read(addr5);
             Trab = EEPROM.read(addr0);
-            Serial.print("Trab = ");
-            Serial.println(Trab);
-            Serial.print("Tbgv = ");
-            Serial.println(Tbgv);
+            //Serial.print("Trab = ");
+            //Serial.println(Trab);
+            //Serial.print("Tbgv = ");
+            //Serial.println(Tbgv);
             tempReadTime = millis();
         }
         //-------------------------------------------------
@@ -80,9 +84,7 @@ void BGV::Start_BGV()
         Read_Nastrroiki();
         lcdMenu_temp5_nastroi();
         //-------------------------------------------------
-        // Решението за старт или стоп на компресора се взема според
-        // температурата на входа на БГВ. Ако е под зададената граница,
-        // включваме компресора, а ако е над горната граница, го спираме.
+        // Старт стоп комп сонда
         if (*tt3_BGV_IN <= Tbgv - DT)
         {
             StartKompSonda();
@@ -108,7 +110,7 @@ void BGV::Start_BGV()
 
         delay(200);
 
-        Serial.println("=========BGV_BGV=========");
+        //Serial.println("=========BGV_BGV=========");
 
     } while (bbb == 1);
 
@@ -117,9 +119,7 @@ void BGV::Start_BGV()
 
     //--------------------------------
 
-    // След приключване на БГВ режима правим преход към следващия режим,
-    // ако е активен. Това е важно, защото системата не трябва да остане
-    // в BGV постоянно, ако потребителят е настроил и охлаждане/отопление.
+    // Преход към охлаждане
     if (flagCOOL == 1 && T_C == 0)
     {
         STOP_ALL;
@@ -140,17 +140,7 @@ void BGV::Start_BGV()
 
     wdt_reset();
     SREG = MySREG;
-    Serial.println("=====BGV_END====");
-}
-
-void BGV::runProtection()
-{
-    ZashtitaBGV();
-}
-
-void BGV::applyModeSpecificRelayState()
-{
-    applyCommonRelayState(true, false, true);
+    //Serial.println("=====BGV_END====");
 }
 
 //-----------------------------------
@@ -158,8 +148,8 @@ void BGV::StartKompSonda()
 {
     uint8_t MySREG = SREG;
     EEPROM_READ();
-    Serial.println("------3----------");
-    Serial.println("StartKompSondaBGV");
+    //Serial.println("------3----------");
+    //Serial.println("StartKompSondaBGV");
 
     if (digitalRead(Komp) == LOW)
     {
@@ -178,8 +168,8 @@ void BGV::StartKompSonda()
         {
             // чака датчик поток да затвори
             delay(1000);
-            Serial.print("ChakaBGV_START = ");
-            Serial.println(15 - (millis() - bgv_Chaka) / 1000);
+            //Serial.print("ChakaBGV_START = ");
+            //Serial.println(15 - (millis() - bgv_Chaka) / 1000);
             // След 15 сек да провери дали е затворил DP
             if ((millis() - bgv_Chaka) / 1000 > 15)
             {
@@ -208,8 +198,8 @@ void BGV::StartKompSonda()
         // включваме комп
         Komp_ON;
         lcd_NISHAN();
-        Serial.println("StartKompSondaBGV - END");
-        Serial.println("----------3------------");
+        //Serial.println("StartKompSondaBGV - END");
+        //Serial.println("----------3------------");
     }
     SREG = MySREG;
 }
@@ -217,8 +207,8 @@ void BGV::StartKompSonda()
 void BGV::StopKompSonda()
 {
     uint8_t MySREG = SREG;
-    Serial.println("------3----------");
-    Serial.println("StopKompSonda");
+    //Serial.println("------3----------");
+    //Serial.println("StopKompSonda");
 
     if (digitalRead(Komp) == HIGH)
     {
@@ -236,8 +226,8 @@ void BGV::StopKompSonda()
         do
         { // чака
             delay(100);
-            Serial.print("ChakaBGV_STOP = ");
-            Serial.println(15 - (millis() - bgv_Chaka) / 1000);
+            //Serial.print("ChakaBGV_STOP = ");
+            //Serial.println(15 - (millis() - bgv_Chaka) / 1000);
             if ((millis() - bgv_Chaka) / 1000 > 15)
             {
                 PUMP_SONDA_OFF;
@@ -270,8 +260,8 @@ void BGV::StopKompSonda()
 
         Komp_OFF;
         PUMP_SONDA_OFF;
-        Serial.println("StopKompSondaBCV - END");
-        Serial.println("----------33------------");
+        //Serial.println("StopKompSondaBCV - END");
+        //Serial.println("----------33------------");
     }
     SREG = MySREG;
 }
@@ -286,7 +276,7 @@ void BGV::ZashtitaBGV()
     // High_outdour_temp_stop();
     //}
     // High_outdour_temp_stop();
-    Serial.println("====ZashtitaBGV====");
+    //Serial.println("====ZashtitaBGV====");
     MotorZ_RST();
     T5_LED_temp();
     // T4bgv_HIGH_temp();
@@ -299,6 +289,6 @@ void BGV::ZashtitaBGV()
     lcd_NISHAN();
     ERROR_LCD();
     // RESET();
-    Serial.println("====ZashtitaBGV - END====");
+    //Serial.println("====ZashtitaBGV - END====");
     SREG = MySREG;
 }

@@ -3,17 +3,15 @@
 #include "FUNK.h"
 #include "Config.h"
 #include "NTC.h"
-#include "Clock_nastroi.h"
-#include "Menu_screen.h"
-#include "KompWorkTime.h"
+#include "KompWorkTime.h"  
 
 
-//-------------------------------------------------------------------------
-// Общи помощни функции за настройките.
-extern int addr106;
-extern int addr107;
-extern int Komp;
-//-------------------------------------------------------------------------
+
+extern int addr106; // EEPROM адрес за секунди
+extern int addr107; // EEPROM адрес за часове
+extern int flagCOOL;
+extern int flagHEAT;
+
 
 //главни функции настройки
 void lcdMenu_temp1_nastroi();    //
@@ -21,10 +19,6 @@ void lcdMenu_temp2_nastroi();    //
 void lcdMenu_temp3_nastroi();
 void lcdMenu_temp4_nastroi();
 void lcdMenu_temp5_nastroi();
-
-// общи помощни функции за настройките
-bool editSimpleSetting(const char* title, int& value, int minValue, int maxValue, int address, bool showAsText = false);
-bool editBinarySetting(const char* title, int& value, int address);
 
 //помощни функции настройки
 void zav_nastr();

@@ -1,5 +1,5 @@
 /*
- * Displays text sent over the serial port (e.g. from the Serial Monitor) on
+ * Displays text sent over the //Serial port (e.g. from the //Serial Monitor) on
  * an attached LCD.
  * YWROBOT
  *Compatible with the Arduino IDE 1.0
@@ -14,21 +14,21 @@ void setup()
 {
   lcd.init();                      // initialize the lcd 
   lcd.backlight();
-  Serial.begin(9600);
+  //Serial.begin(9600);
 }
 
 void loop()
 {
-  // when characters arrive over the serial port...
-  if (Serial.available()) {
+  // when characters arrive over the //Serial port...
+  if (//Serial.available()) {
     // wait a bit for the entire message to arrive
     delay(100);
     // clear the screen
     lcd.clear();
     // read all the available characters
-    while (Serial.available() > 0) {
+    while (//Serial.available() > 0) {
       // display each character to the LCD
-      lcd.write(Serial.read());
+      lcd.write(//Serial.read());
     }
   }
 }

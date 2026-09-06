@@ -15,9 +15,9 @@ Heat::Heat()
     heat_Chaka = millis();
     _4valve_Chaka = millis();
 
-    Serial.print("constructor Class_Heat = ");
-    Serial.print("TrabZima =");
-    Serial.println(Trab);
+    //Serial.print("constructor Class_Heat = ");
+    //Serial.print("TrabZima =");
+    //Serial.println(Trab);
     STOP_ALL;
     lcd.setCursor(15, 2);
     lcd.print(" T ");
@@ -26,9 +26,9 @@ Heat::Heat()
 
 Heat::~Heat()
 {
-    Serial.println("destructor Class_Heat");
-    Serial.print("tt8_BUFFER = ");
-    Serial.println(*tt8_BUFFER);
+    //Serial.println("destructor Class_Heat");
+    //Serial.print("tt8_BUFFER = ");
+    //Serial.println(*tt8_BUFFER);
     STOP_ALL;
     // delay(1000);
 }
@@ -46,8 +46,8 @@ void Heat::Start_Heat()
     ZashtitaHeat();
     Dat_potok_error();
     int Trab = EEPROM.read(addr0);
-    Serial.print("Trab = ");
-    Serial.println(Trab);
+    //Serial.print("Trab = ");
+    //Serial.println(Trab);
     tempReadTime = millis();
     // PumpBGV_ON;
     // PumpBUFFER_ON;
@@ -80,8 +80,8 @@ void Heat::Start_Heat()
             EEPROM_READ();
             ZashtitaHeat();
             Trab = EEPROM.read(addr0);
-            Serial.print("Trab = ");
-            Serial.println(Trab);
+            //Serial.print("Trab = ");
+            //Serial.println(Trab);
             tempReadTime = millis();
         }
         //-------------------------------------------------
@@ -119,7 +119,7 @@ void Heat::Start_Heat()
 
         //---------------------------------------
         wdt_reset();
-        Serial.println("+++++Heat++++++");
+        //Serial.println("+++++Heat++++++");
     }
 
     lcd.setCursor(15, 2);
@@ -133,8 +133,8 @@ void Heat::StartKompSonda()
 {
     uint8_t MySREG = SREG;
     EEPROM_READ();
-    Serial.println("------1----------");
-    Serial.println("StartKompSondaHEAT");
+    //Serial.println("------1----------");
+    //Serial.println("StartKompSondaHEAT");
 
     if (digitalRead(Komp) == LOW)
     {
@@ -152,8 +152,8 @@ void Heat::StartKompSonda()
         do
         { // чака
             delay(1000);
-            Serial.print("ChakaHeat_START = ");
-            Serial.println(15 - (millis() - heat_Chaka) / 1000);
+            //Serial.print("ChakaHeat_START = ");
+            //Serial.println(15 - (millis() - heat_Chaka) / 1000);
             // След 15 сек да провери дали е затворил DP
             if ((millis() - heat_Chaka) / 1000 > 15)
             {
@@ -189,8 +189,8 @@ void Heat::StartKompSonda()
         // включваме комп
         Komp_ON;
         lcd_NISHAN();
-        Serial.println("StartKompSondaHeat - END");
-        Serial.println("----------1------------");
+        //Serial.println("StartKompSondaHeat - END");
+        //Serial.println("----------1------------");
     }
     SREG = MySREG;
 }
@@ -198,8 +198,8 @@ void Heat::StartKompSonda()
 void Heat::StopKompSonda()
 {
     uint8_t MySREG = SREG;
-    Serial.println("------1----------");
-    Serial.println("StopKompSonda");
+    //Serial.println("------1----------");
+    //Serial.println("StopKompSonda");
 
     if (digitalRead(Komp) == HIGH)
     {
@@ -217,8 +217,8 @@ void Heat::StopKompSonda()
         do
         { // чака
             delay(100);
-            Serial.print("ChakaHeat_STOP = ");
-            Serial.println(15 - (millis() - heat_Chaka) / 1000);
+            //Serial.print("ChakaHeat_STOP = ");
+            //Serial.println(15 - (millis() - heat_Chaka) / 1000);
             if ((millis() - heat_Chaka) / 1000 > 15)
             {
                 PUMP_SONDA_OFF;
@@ -252,8 +252,8 @@ void Heat::StopKompSonda()
         Komp_OFF;
         PUMP_SONDA_OFF;
         lcd_NISHAN();
-        Serial.println("StopKompSondaHeat - END");
-        Serial.println("----------11------------");
+        //Serial.println("StopKompSondaHeat - END");
+        //Serial.println("----------11------------");
     }
     SREG = MySREG;
 }
@@ -268,7 +268,7 @@ void Heat::ZashtitaHeat()
     // High_outdour_temp_stop();
     //}
     // High_outdour_temp_stop();
-    Serial.println("====ZashtitaHeat====");
+    //Serial.println("====ZashtitaHeat====");
     wdt_reset();
     MotorZ_RST();
     T5_LED_temp();
@@ -282,6 +282,6 @@ void Heat::ZashtitaHeat()
     lcd_NISHAN();
     ERROR_LCD();
     // RESET();
-    Serial.println("====ZashtitaHeat====end===");
+    //Serial.println("====ZashtitaHeat====end===");
     SREG = MySREG;
 }

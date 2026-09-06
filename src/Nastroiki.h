@@ -3,11 +3,14 @@
 #include "FUNK.h"
 #include "Config.h"
 #include "NTC.h"
+#include "KompWorkTime.h"  
 
 
 
 extern int addr106; // EEPROM адрес за секунди
 extern int addr107; // EEPROM адрес за часове
+extern int flagCOOL;
+extern int flagHEAT;
 
 
 //главни функции настройки

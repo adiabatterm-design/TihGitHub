@@ -12,12 +12,12 @@ void setup()
          lcd.print(L"пишите текст");
            lcd.setCursor(1, 1);
              lcd.print(L"в монитор порта");
-               Serial.begin(9600); //инициализация ком-порта
+               //Serial.begin(9600); //инициализация ком-порта
 }
 
 void loop() {
    //если пришли данные
-     if (Serial.available())
+     if (//Serial.available())
         {
              //немного ждём, что бы пришёл весь текст
                  delay(100);
@@ -25,10 +25,10 @@ void loop() {
                          lcd.clear();
                              lcd.setCursor(0, 0);
                                  //читаем посимвольно текст
-                                     while (Serial.available() > 0)
+                                     while (//Serial.available() > 0)
                                           {
                                                  //читаем символ(в т.ч. русский) и выводим на экран
-                                                       lcd.print(lcd.asciiutf8(Serial.read()));
+                                                       lcd.print(lcd.asciiutf8(//Serial.read()));
                                                            }
                                                              }
 }

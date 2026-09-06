@@ -57,7 +57,7 @@ git pull
 git log --oneline  
 Показва историята.
 
-git branch  
+git branch
 Показва клоновете.
 
 git checkout -b име  
