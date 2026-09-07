@@ -70,7 +70,8 @@ git branch
 git checkout -b име  
 Създава нов клон.
 
-
-
+Възстановяване на URL - github
+git remote -v
+git remote add origin https://github.com/adiabatterm-design/TihGitHub
 
 
