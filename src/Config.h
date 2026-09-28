@@ -103,15 +103,15 @@ uint8_t ALARM = 41;			 // PC2  //; //IO35 2 //
 	{                                   \
 		digitalWrite(PUMP_SONDA, HIGH); \
 		delay(10);                      \
-		digitalWrite(CAREL, HIGH);\
-		delay(10);						\
+		digitalWrite(CAREL, HIGH);      \
+		delay(10);                      \
 	}
 #define PUMP_SONDA_OFF                 \
 	{                                  \
 		digitalWrite(PUMP_SONDA, LOW); \
 		delay(10);                     \
-		digitalWrite(CAREL, LOW); \
-		delay(10);                \
+		digitalWrite(CAREL, LOW);      \
+		delay(10);                     \
 	}
 // помпа Буфер
 #define PumpBUFFER_ON                   \
@@ -298,19 +298,19 @@ int addr01 = addr0 + sizeof(int); // Trab_cool
 int addr1 = addr01 + sizeof(int); // Tmax
 int addr2 = addr1 + sizeof(int);  // Tmin
 //--------------------------
-int addr3 = addr2 + sizeof(int);  // D_T
-int addr4 = addr3 + sizeof(int);  // T_C
-int addr5 = addr4 + sizeof(int);  // t7 - BGV boiler
+int addr3 = addr2 + sizeof(int); // D_T
+int addr4 = addr3 + sizeof(int); // T_C
+int addr5 = addr4 + sizeof(int); // t7 - BGV boiler
 // int addr6 = addr5 + sizeof(int);     //DEFROS temp end - изход от изпарител - външен
 // int addr7 = addr6 + sizeof(int);     //Delta_T_def
-int addr106 = addr5 + sizeof(unsigned long);     //Delta_T_def
-int addr107 = addr106 + sizeof(unsigned long);   // KWT - компресор време работа
-int addr8 = addr107 + sizeof(int);			  // t8 - outdoor ZIMA
-int addr81 = addr8 + sizeof(int);			  // t81 - outdoor LETO
-int addr9 = addr81 + sizeof(int);			  // Auto Trab - ok and noAuto Trab
-int addr10 = addr9 + sizeof(int);			  // Auto Trab korect
-int addr101 = addr10 + sizeof(unsigned long); // ZK
-int addr102 = addr101 + sizeof(int);		  // Tled
+int addr106 = addr5 + sizeof(unsigned long);   // Delta_T_def
+int addr107 = addr106 + sizeof(unsigned long); // KWT - компресор време работа
+int addr8 = addr107 + sizeof(int);			   // t8 - outdoor ZIMA
+int addr81 = addr8 + sizeof(int);			   // t81 - outdoor LETO
+int addr9 = addr81 + sizeof(int);			   // Auto Trab - ok and noAuto Trab
+int addr10 = addr9 + sizeof(int);			   // Auto Trab korect
+int addr101 = addr10 + sizeof(unsigned long);  // ZK
+int addr102 = addr101 + sizeof(int);		   // Tled
 //--------------------------
 int addr103 = addr102 + sizeof(int); // HEAT_ON_OFF
 int addr104 = addr103 + sizeof(int); // COOL_ON_OFF
@@ -322,14 +322,14 @@ int addr1111 = addr111 + sizeof(int); // ERROR_DP
 
 // T - zavodski - записани в EEPROM
 int Trab = AutoTrabToutSeting(); // Trab - t1
-int Tmax = EEPROM.read(addr1); // Tmax
-int Tmin = EEPROM.read(addr2); // Tmin
-int DT = EEPROM.read(addr3);   // Delta_T
-int T_C = EEPROM.read(addr4);  // Топло студено
-int Tbgv = EEPROM.read(addr5); // t5bgv BOILER
+int Tmax = EEPROM.read(addr1);	 // Tmax
+int Tmin = EEPROM.read(addr2);	 // Tmin
+int DT = EEPROM.read(addr3);	 // Delta_T
+int T_C = EEPROM.read(addr4);	 // Топло студено
+int Tbgv = EEPROM.read(addr5);	 // t5bgv BOILER
 
-int Tout_ZIMA = EEPROM.read(addr8); // Toutdoor ZIMA
-int Tout_LETO = EEPROM.read(addr81);					// addr81 Toutdoor LETO
+int Tout_ZIMA = EEPROM.read(addr8);	 // Toutdoor ZIMA
+int Tout_LETO = EEPROM.read(addr81); // addr81 Toutdoor LETO
 int AutoTrab = EEPROM.read(addr9);
 int ATrab_korect = EEPROM.read(addr10);
 int Tled = EEPROM.read(addr102);

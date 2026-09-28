@@ -1202,7 +1202,7 @@ void WIFI_Stop()
 	Serial.println("WIFI_Stop - end READ");
 } // end WIFI
 //---------------------------------------------------
-//Четене на настойките от EEPROM
+// Четене на настойките от EEPROM
 void EEPROM_READ()
 {
 	Serial.println("EEPROM_READ");

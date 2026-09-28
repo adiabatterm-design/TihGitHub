@@ -1090,7 +1090,7 @@ void Tbgv_nastroi()
 					t = 1;
 				}
 				if (Tbgv > Tmax - 2)
-					Tbgv = Tmax -2;
+					Tbgv = Tmax - 2;
 
 				if (millis() - StopButtBGV > 500) // 3000
 					break;
@@ -2069,11 +2069,9 @@ int AutoTrabToutSeting()
 		}
 	}
 	Serial.print("AUTO_Trab = " + String(Trab));
-	
+
 	SREG = MySREG;
 	return Trab;
-
-	
 }
 
 //--------------------------------------
